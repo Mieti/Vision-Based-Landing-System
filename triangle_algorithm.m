@@ -43,19 +43,28 @@ function triangles = triangle_algorithm(fileName)
         triangles(counter).a = sqrt((triangles(counter).B_x - triangles(counter).C_x)^2 + (triangles(counter).B_y - triangles(counter).C_y)^2);
         triangles(counter).b = sqrt((triangles(counter).A_x - triangles(counter).C_x)^2 + (triangles(counter).A_y - triangles(counter).C_y)^2);
         triangles(counter).c = sqrt((triangles(counter).B_x - triangles(counter).A_x)^2 + (triangles(counter).B_y - triangles(counter).A_y)^2);
-    
-        a_x = [triangles(counter).B_x, triangles(counter).C_x];
-        a_y = [triangles(counter).B_y, triangles(counter).C_y];
-        b_x = [triangles(counter).A_x, triangles(counter).C_x];
-        b_y = [triangles(counter).A_y, triangles(counter).C_y];
-        c_x = [triangles(counter).A_x, triangles(counter).B_x];
-        c_y = [triangles(counter).A_y, triangles(counter).B_y];
-    
-        % plot(a_x, a_y, 'Color', colors(i,:));
-        % plot(b_x, b_y, 'Color', colors(i,:));
-        % plot(c_x, c_y, 'Color', colors(i,:));
-    
+
+        A = [triangles(counter).A_x, triangles(counter).A_y];
+        B = [triangles(counter).B_x, triangles(counter).B_y];
+        C = [triangles(counter).C_x, triangles(counter).C_y];
+
+        AB = B - A;
+        BC = C - B;
+        CA = A - C;
+
+        dotProductAlpha = dot(AB, -CA);
+        dotProductBeta = dot(-AB, BC);
+        dotProductGamma = dot(-BC, CA);
+        magAB = norm(AB);
+        magBC = norm(BC);
+        magCA = norm(CA);
+
+        triangles(counter).alpha = rad2deg(acos(dotProductAlpha/(magAB*magCA)));
+        triangles(counter).beta = rad2deg(acos(dotProductBeta/(magAB*magBC)));
+        triangles(counter).gamma = rad2deg(acos(dotProductGamma/(magBC*magCA)));
+
         counter = counter+1;
     end
     % hold off;
+    writetable(struct2table(triangles), "Triangles2.csv");
 end

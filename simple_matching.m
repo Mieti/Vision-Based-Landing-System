@@ -2,7 +2,7 @@ function index = simple_matching()
  
     camera_triangles = triangle_algorithm("CameraShot");
     tolerance = 1e-6;
-    map = readtable("Triangles.csv");
+    map = readtable("Triangles_with_angles.csv");
     found = 0;
     index = 0;
     tp = 0;
