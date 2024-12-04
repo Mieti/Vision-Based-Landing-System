@@ -4,7 +4,7 @@ clc
 
 %% Path Configuration
 
-addpath(genpath('C:\Users\Riccardo\Desktop\Tesi\Tesi\CAMERA_MODEL'));
+path_configuration;
 % NOTE:  genpath allows inclusion of subfolders
 
 %% Simulation Sampling time
@@ -95,9 +95,11 @@ for i=1:num_landmarks_found
     plot(Camx,Camy,'r')
     hold on;
 end
+% create catalogue for matching algorithm
 cameraShot.PosX = CamX';
 cameraShot.PosY = CamY';
 cameraShot.Radius = Camr';
+% ---
 set(gca, 'LineWidth', 0.5); % Set the linewidth of the axes
 set(gca, 'FontWeight', 'normal'); % Set the font weight of the axes labels
 print('img/Found_Craters_Init.eps', '-depsc');
