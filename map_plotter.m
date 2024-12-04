@@ -1,4 +1,4 @@
-craterList = readtable("CameraShot" + ".csv");
+craterList = readtable("CraterMap" + ".csv");
 figure(1)
 for i=1:length(craterList.PosX)
        xc(i) = craterList.PosX(i);

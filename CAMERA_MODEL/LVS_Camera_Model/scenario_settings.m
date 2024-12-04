@@ -7,7 +7,8 @@ load EST_Quaternion
 load EST_PosX
 load EST_PosY
 load EST_PosZ
-Cat = load('Catalogue/Cat_5000_600elements_filtered.mat').landmarks_filtered;
+%Cat = load('Catalogue/Cat_5000_600elements_filtered.mat').landmarks_filtered;
+Cat = load('Catalogue/Catalogue.mat').Cat;
 % 
 %% Camera
 % % Camera Placement on Lander (x, y, z and attitude)

@@ -4,7 +4,7 @@ clc
 
 %% Path Configuration
 
-addpath(genpath('C:/WORKING_AREA_PAOLO2/Tesisti/Tesi_Riccardo_Vukovic/CAMERA_MODEL'));
+addpath(genpath('C:\Users\Riccardo\Desktop\Tesi\Tesi\CAMERA_MODEL'));
 % NOTE:  genpath allows inclusion of subfolders
 
 %% Simulation Sampling time
@@ -91,10 +91,13 @@ for i=1:num_landmarks_found
     Camr(i)=landmarks_ground(2,199+i*3);
     theta = linspace(0,2*pi);
     Camx = Camr(i)*cos(theta) + CamX(i);
-    Camy = Camr(i)*sin(theta) + CamY(i);
+    Camy = Camr(i)*sin(theta) + CamY(i); 
     plot(Camx,Camy,'r')
     hold on;
 end
+cameraShot.PosX = CamX';
+cameraShot.PosY = CamY';
+cameraShot.Radius = Camr';
 set(gca, 'LineWidth', 0.5); % Set the linewidth of the axes
 set(gca, 'FontWeight', 'normal'); % Set the font weight of the axes labels
 print('img/Found_Craters_Init.eps', '-depsc');
@@ -291,6 +294,8 @@ set(gca, 'LineWidth', 0.5); % Set the linewidth of the axes
 set(gca, 'FontWeight', 'normal'); % Set the font weight of the axes labels
 print('img/Found_Craters_5s.eps', '-depsc');
 saveas(gcf, 'img/Found_Craters_5s.jpg');
+
+
 
 return;
 

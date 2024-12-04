@@ -6,14 +6,14 @@ function camera_shot(x, y)
     lower_left_x = x;
     lower_left_y = y;
     CraterCounter=0;
-    Headers = {'PosX', 'PosY', 'Diameter', 'Age'};
+    Headers = {'PosX', 'PosY', 'Radius', 'Age'};
     rowCounter = 1;
     t = table('Size', [0, length(Headers)], 'VariableTypes', {'double', 'double', 'double', 'double'}, 'VariableNames', Headers);
     
     for i=1:length(craterList.PosX)
            xc(i) = craterList.PosX(i);
            yc(i) = craterList.PosY(i);
-           r(i) = craterList.Diameter(i);
+           r(i) = craterList.Diameter(i)/2;
            theta = linspace(0,2*pi);
            if xc(i) > lower_left_x && xc(i) < upper_right_x && yc(i) > lower_left_y && yc(i) < upper_right_y
                CraterCounter=CraterCounter+1;

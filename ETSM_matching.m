@@ -1,18 +1,18 @@
 function ETSM_matching()
 
     % read full crater list map and triangles map
-    craters = readtable("CraterMap.csv");
+    craters = readtable("CraterMapRadius.csv");
     map = readtable("Triangles_with_angles.csv");
 
     % read camera shot crater list and triangle algorithm on shot image
-    camera_craters = readtable("CameraShot.csv");
-    camera_triangles = struct2table(triangle_algorithm("CameraShot"));
+    camera_craters = readtable("cameraShotSim.csv");
+    camera_triangles = struct2table(triangle_algorithm("CameraShotSim"));
     
 
     craters_coordinates = craters{:, [1,2]};
     camera_craters_coordinates = camera_craters{:, [1,2]};
-    diff = 1;
-    mind = 1;
+    diff = 10;
+    mind = 10;
     gamma = 1;
     match = 0;
 

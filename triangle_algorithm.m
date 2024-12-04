@@ -4,18 +4,19 @@ function triangles = triangle_algorithm(fileName)
     % close all;
     
     cameraShot = readtable(fileName + ".csv");
+    %cameraShot = load(fileName + ".mat").cameraShot;
     counter = 1;
     theta = linspace(0,2*pi);
     colors = lines(height(cameraShot)); % 'lines' colormap provides a set of visually distinct colors
     
-    % figure(1);
+    figure(1);
     distances = zeros(height(cameraShot), height(cameraShot));
     
     for i=1:height(cameraShot)
-        % x = cameraShot.Diameter(i)/2*cos(theta) + cameraShot.PosX(i);
-        % y = cameraShot.Diameter(i)/2*sin(theta) + cameraShot.PosY(i);
-        % plot(x,y);
-        % hold on;
+        x = cameraShot.Radius(i)*cos(theta) + cameraShot.PosX(i);
+        y = cameraShot.Radius(i)*sin(theta) + cameraShot.PosY(i);
+        plot(x,y);
+        hold on;
     end
     
     for i=1:height(cameraShot)
@@ -33,13 +34,13 @@ function triangles = triangle_algorithm(fileName)
     
         triangles(counter).A_x = cameraShot.PosX(i);
         triangles(counter).A_y = cameraShot.PosY(i);
-        triangles(counter).A_diameter = cameraShot.Diameter(i);
+        triangles(counter).A_radius = cameraShot.Radius(i);
         triangles(counter).B_x = cameraShot.PosX(sortedIndices(2,i));
         triangles(counter).B_y = cameraShot.PosY(sortedIndices(2,i));
-        triangles(counter).B_diameter = cameraShot.Diameter(sortedIndices(2,i));
+        triangles(counter).B_radius = cameraShot.Radius(sortedIndices(2,i));
         triangles(counter).C_x = cameraShot.PosX(sortedIndices(3,i));
         triangles(counter).C_y = cameraShot.PosY(sortedIndices(3,i));
-        triangles(counter).C_diameter = cameraShot.Diameter(sortedIndices(3,i));
+        triangles(counter).C_radius = cameraShot.Radius(sortedIndices(3,i));
         triangles(counter).a = sqrt((triangles(counter).B_x - triangles(counter).C_x)^2 + (triangles(counter).B_y - triangles(counter).C_y)^2);
         triangles(counter).b = sqrt((triangles(counter).A_x - triangles(counter).C_x)^2 + (triangles(counter).A_y - triangles(counter).C_y)^2);
         triangles(counter).c = sqrt((triangles(counter).B_x - triangles(counter).A_x)^2 + (triangles(counter).B_y - triangles(counter).A_y)^2);
