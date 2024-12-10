@@ -74,9 +74,9 @@ function ETSM_matching()
                     d1_shot = CA_shot;
                 end
 
-                if ((abs(A(1) - (-1163.91)) < tol || abs(B(1) - (-1163.91)) < tol || abs(C(1) - (-1163.91)) < tol)  && (abs(x(1) - (-1156.92)) < tol || abs(x(2) - (-1156.92)) < tol || abs(x(3) - (-1156.92)) < tol)) 
-                    disp("TROVATO IL PUNTO");
-                end
+                % if ((abs(A(1) - (-1163.91)) < tol || abs(B(1) - (-1163.91)) < tol || abs(C(1) - (-1163.91)) < tol)  && (abs(x(1) - (-1156.92)) < tol || abs(x(2) - (-1156.92)) < tol || abs(x(3) - (-1156.92)) < tol)) 
+                %     disp("TROVATO IL PUNTO");
+                % end
 
                 isVertex_shot = ismember(camera_craters_coordinates, [x',y'], 'rows');
                 filtered_coordinates_camera = camera_craters_coordinates(~isVertex_shot,:);

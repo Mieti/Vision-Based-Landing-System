@@ -15,7 +15,7 @@ numTriangles = size(data, 1);
 numTriangles2 = size(data2, 1);
 
 % Plot triangles
-figure(1);
+figure(10);
 hold on; % Retain plots for multiple triangles
 axis equal; % Equal scaling for x and y axes
 title('Triangles from Camera Shot');
@@ -32,7 +32,7 @@ end
 hold off;
 
 
-figure(2);
+figure(11);
 hold on; % Retain plots for multiple triangles
 axis equal; % Equal scaling for x and y axes
 title('Triangles from Complete Crater Map');
