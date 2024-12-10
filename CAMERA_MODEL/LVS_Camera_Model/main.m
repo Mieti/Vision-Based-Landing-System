@@ -99,6 +99,7 @@ end
 cameraShot.PosX = CamX';
 cameraShot.PosY = CamY';
 cameraShot.Radius = Camr';
+writetable(struct2table(cameraShot), '..\..\CameraShotSim.csv');
 % ---
 set(gca, 'LineWidth', 0.5); % Set the linewidth of the axes
 set(gca, 'FontWeight', 'normal'); % Set the font weight of the axes labels

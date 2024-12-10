@@ -9,15 +9,15 @@ function triangles = triangle_algorithm(fileName)
     theta = linspace(0,2*pi);
     colors = lines(height(cameraShot)); % 'lines' colormap provides a set of visually distinct colors
     
-    figure(1);
+    % figure(1);
     distances = zeros(height(cameraShot), height(cameraShot));
     
-    for i=1:height(cameraShot)
-        x = cameraShot.Radius(i)*cos(theta) + cameraShot.PosX(i);
-        y = cameraShot.Radius(i)*sin(theta) + cameraShot.PosY(i);
-        plot(x,y);
-        hold on;
-    end
+    % for i=1:height(cameraShot)
+    %     x = cameraShot.Radius(i)*cos(theta) + cameraShot.PosX(i);
+    %     y = cameraShot.Radius(i)*sin(theta) + cameraShot.PosY(i);
+    %     plot(x,y);
+    %     hold on;
+    % end
     
     for i=1:height(cameraShot)
         for j=1:height(cameraShot)
@@ -67,5 +67,5 @@ function triangles = triangle_algorithm(fileName)
         counter = counter+1;
     end
     % hold off;
-    writetable(struct2table(triangles), "Triangles2.csv");
+    writetable(struct2table(triangles), "Triangles_CameraShot.csv");
 end

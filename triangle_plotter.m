@@ -1,5 +1,5 @@
 % Load the CSV file
-data = readmatrix('Triangles2.csv'); % Assuming 'triangles.csv' is the file name
+data = readmatrix('Triangles_CameraShot.csv'); 
 data2 = readmatrix('Triangles_with_angles.csv');
 % Extract coordinates
 xA = data(:, 1); yA = data(:, 2);
@@ -18,7 +18,7 @@ numTriangles2 = size(data2, 1);
 figure(1);
 hold on; % Retain plots for multiple triangles
 axis equal; % Equal scaling for x and y axes
-title('Triangles from CSV File');
+title('Triangles from Camera Shot');
 xlabel('X'); ylabel('Y');
 
 for i = 1:numTriangles
@@ -35,7 +35,7 @@ hold off;
 figure(2);
 hold on; % Retain plots for multiple triangles
 axis equal; % Equal scaling for x and y axes
-title('Triangles from CSV File 2');
+title('Triangles from Complete Crater Map');
 xlabel('X'); ylabel('Y');
 
 for i = 1:numTriangles2

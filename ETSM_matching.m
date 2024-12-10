@@ -11,16 +11,18 @@ function ETSM_matching()
 
     craters_coordinates = craters{:, [1,2]};
     camera_craters_coordinates = camera_craters{:, [1,2]};
-    diff = 10;
+    diff = 1000;
     mind = 10;
     gamma = 1;
     match = 0;
+    tol = 1e-1;
+    res_counter = 1;
 
     % 2 nested loops to compare 2 triangles
     for i=1:height(camera_triangles)
-        if match
-            break
-        end
+        % if match
+        %     break
+        % end
         angles_shot = mink(camera_triangles{i, 13:15}, 2);
         for j=1:height(map)
             angles = mink(map{j, 13:15}, 2);
@@ -72,6 +74,10 @@ function ETSM_matching()
                     d1_shot = CA_shot;
                 end
 
+                if ((abs(A(1) - (-1163.91)) < tol || abs(B(1) - (-1163.91)) < tol || abs(C(1) - (-1163.91)) < tol)  && (abs(x(1) - (-1156.92)) < tol || abs(x(2) - (-1156.92)) < tol || abs(x(3) - (-1156.92)) < tol)) 
+                    disp("TROVATO IL PUNTO");
+                end
+
                 isVertex_shot = ismember(camera_craters_coordinates, [x',y'], 'rows');
                 filtered_coordinates_camera = camera_craters_coordinates(~isVertex_shot,:);
                 distances_shot = sqrt((filtered_coordinates_camera(:,1) - centroid_shot(1)).^2 + (filtered_coordinates_camera(:,2) - centroid_shot(2)).^2);
@@ -85,10 +91,62 @@ function ETSM_matching()
                 Cross = abs((d1(1)*dcenter(2) - d1(2)*dcenter(1)) - ((d1_shot(1)*dcenter_shot(2) - d1_shot(2)*dcenter_shot(1))/gamma^2));
                 if Inner^2+Cross^2 < diff*norm(dcenter)
                     disp("MATCH FOUND!");
-                    match = 1;
+                    %match = 1;
+                    result_final(res_counter, 1) = x(1);
+                    result_final(res_counter, 2) = y(1);
+                    result_final(res_counter, 3) = i;
+                    result_final(res_counter, 4) = x(2);
+                    result_final(res_counter, 5) = y(2);
+                    result_final(res_counter, 6) = j;
+                    result_final(res_counter, 7) = x(3);
+                    result_final(res_counter, 8) = y(3);
+                    result_final(res_counter, 9) = 0;
+                    res_counter = res_counter + 1;
                     break
                 end
             end
         end
     end
+    data = result_final;
+    map = readmatrix("Triangles_with_angles.csv");
+
+    xA = data(:, 1); yA = data(:, 2);
+    xB = data(:, 4); yB = data(:, 5);
+    xC = data(:, 7); yC = data(:, 8);
+    
+    xA2 = map(:, 1); yA2 = map(:, 2);
+    xB2 = map(:, 4); yB2 = map(:, 5);
+    xC2 = map(:, 7); yC2 = map(:, 8);
+
+% Number of triangles
+    numTriangles = size(data, 1);
+    numTriangles2 = size(map, 1);
+    % Plot triangles
+    figure(1);
+    hold on; % Retain plots for multiple triangles
+    axis equal; % Equal scaling for x and y axes
+    title('Triangles from CSV File');
+    xlabel('X'); ylabel('Y');
+    
+    for i = 1:numTriangles
+        % Get vertices of the current triangle
+        xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
+        yCoords = [yA(i), yB(i), yC(i), yA(i)];
+        
+        % Plot the triangle
+        plot(xCoords, yCoords, '-o', 'LineWidth', 1);
+    end
+
+    for i = 1:numTriangles
+        map_index = data(i, 6);
+        % Get vertices of the current triangle
+        xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+        yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+        
+        % Plot the triangle
+        plot(xCoords2, yCoords2, '-o', 'LineWidth', 1);
+    end
+    
+    hold off;
+
 end
