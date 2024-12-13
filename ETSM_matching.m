@@ -122,6 +122,7 @@ function ETSM_matching()
     numTriangles = size(data, 1);
     numTriangles2 = size(map, 1);
     % Plot triangles
+    cmap = lines(numTriangles);
     figure(1);
     hold on; % Retain plots for multiple triangles
     axis equal; % Equal scaling for x and y axes
@@ -134,7 +135,7 @@ function ETSM_matching()
         yCoords = [yA(i), yB(i), yC(i), yA(i)];
         
         % Plot the triangle
-        plot(xCoords, yCoords, '-o', 'LineWidth', 1);
+        plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', cmap(i,:));
     end
 
     for i = 1:numTriangles
@@ -144,7 +145,7 @@ function ETSM_matching()
         yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
         
         % Plot the triangle
-        plot(xCoords2, yCoords2, '-o', 'LineWidth', 1);
+        plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', cmap(i,:));
     end
     
     hold off;
