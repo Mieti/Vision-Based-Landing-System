@@ -11,7 +11,7 @@ function ETSM_matching()
 
     craters_coordinates = craters{:, [1,2]};
     camera_craters_coordinates = camera_craters{:, [1,2]};
-    diff = 1000;
+    diff = 10000;
     mind = 10;
     gamma = 1;
     match = 0;
@@ -107,47 +107,48 @@ function ETSM_matching()
             end
         end
     end
-    data = result_final;
-    map = readmatrix("Triangles_with_angles.csv");
-
-    xA = data(:, 1); yA = data(:, 2);
-    xB = data(:, 4); yB = data(:, 5);
-    xC = data(:, 7); yC = data(:, 8);
+    if res_counter > 1
+        data = result_final;
+        map = readmatrix("Triangles_with_angles.csv");
     
-    xA2 = map(:, 1); yA2 = map(:, 2);
-    xB2 = map(:, 4); yB2 = map(:, 5);
-    xC2 = map(:, 7); yC2 = map(:, 8);
-
-% Number of triangles
-    numTriangles = size(data, 1);
-    numTriangles2 = size(map, 1);
-    % Plot triangles
-    cmap = lines(numTriangles);
-    figure(1);
-    hold on; % Retain plots for multiple triangles
-    axis equal; % Equal scaling for x and y axes
-    title('Triangles from CSV File');
-    xlabel('X'); ylabel('Y');
-    
-    for i = 1:numTriangles
-        % Get vertices of the current triangle
-        xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
-        yCoords = [yA(i), yB(i), yC(i), yA(i)];
+        xA = data(:, 1); yA = data(:, 2);
+        xB = data(:, 4); yB = data(:, 5);
+        xC = data(:, 7); yC = data(:, 8);
         
-        % Plot the triangle
-        plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', cmap(i,:));
-    end
-
-    for i = 1:numTriangles
-        map_index = data(i, 6);
-        % Get vertices of the current triangle
-        xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
-        yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
-        
-        % Plot the triangle
-        plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', cmap(i,:));
-    end
+        xA2 = map(:, 1); yA2 = map(:, 2);
+        xB2 = map(:, 4); yB2 = map(:, 5);
+        xC2 = map(:, 7); yC2 = map(:, 8);
     
-    hold off;
-
+    % Number of triangles
+        numTriangles = size(data, 1);
+        numTriangles2 = size(map, 1);
+        % Plot triangles
+        cmap = lines(numTriangles);
+        figure(1);
+        hold on; % Retain plots for multiple triangles
+        axis equal; % Equal scaling for x and y axes
+        title('Triangles from CSV File');
+        xlabel('X'); ylabel('Y');
+        
+        for i = 1:numTriangles
+            % Get vertices of the current triangle
+            xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
+            yCoords = [yA(i), yB(i), yC(i), yA(i)];
+            
+            % Plot the triangle
+            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', cmap(i,:));
+        end
+    
+        for i = 1:numTriangles
+            map_index = data(i, 6);
+            % Get vertices of the current triangle
+            xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+            yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+            
+            % Plot the triangle
+            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', cmap(i,:));
+        end
+        
+        hold off;
+    end
 end

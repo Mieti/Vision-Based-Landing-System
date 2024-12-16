@@ -28,7 +28,7 @@ landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
 %% Errors for analyses
 Rand_x = -3000 + 6000*rand;
 Rand_y = -3000 + 6000*rand;
-AltitudeError = 0; %-100;
+AltitudeError = 100; %-100;
 PhiError = 0; %1/180*pi;
 ThtError = 0; %-1/180*pi;
 PsiError = 5/180*pi; 

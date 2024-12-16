@@ -106,7 +106,10 @@ set(gca, 'FontWeight', 'normal'); % Set the font weight of the axes labels
 print('img/Found_Craters_Init.eps', '-depsc');
 saveas(gcf, 'img/Found_Craters_Init.jpg');
 
-ETSM_matching;
+%ETSM_matching;
+
+RANSAC_matching;
+
 % figure(5); %Simulation after 10 s
 % 
 % for k=1:num_landmarks_cat
