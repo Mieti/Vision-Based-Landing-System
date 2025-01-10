@@ -99,16 +99,16 @@ end
 cameraShot.PosX = CamX';
 cameraShot.PosY = CamY';
 cameraShot.Radius = Camr';
-writetable(struct2table(cameraShot), '..\..\CameraShotSim.csv');
+writetable(struct2table(cameraShot), '../../CameraShotSim.csv');
 % ---
 set(gca, 'LineWidth', 0.5); % Set the linewidth of the axes
 set(gca, 'FontWeight', 'normal'); % Set the font weight of the axes labels
 print('img/Found_Craters_Init.eps', '-depsc');
 saveas(gcf, 'img/Found_Craters_Init.jpg');
 
-%ETSM_matching;
+% ETSM_matching;
 
-RANSAC_matching;
+% RANSAC_matching;
 
 % figure(5); %Simulation after 10 s
 % 
