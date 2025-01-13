@@ -1,8 +1,8 @@
 function RANSAC_matching()
 
     % clear all
-    % close all
-    % clc
+    close all
+    clc
 
     % read full crater list map and triangles map
     craters = table2array(readtable("CraterMapRadius.csv"));
@@ -38,7 +38,8 @@ function RANSAC_matching()
             continue
         end
         v1 = neighbors(1, 1:2) - center;
-        
+        v1_list(i,1) = v1(1);
+        v1_list(i,2) = v1(2);
         % figure(4);
         % theta = linspace(0,2*pi);
         % x = (rc*k)*cos(theta) + center(1);
@@ -145,8 +146,8 @@ function RANSAC_matching()
                 result(diff_counter+1,4) = craters(j,1);
                 result(diff_counter+1,5) = craters(j,2);
                 result(diff_counter+1,6) = craters(j,3);
-                result(diff_counter+1,7) = v1(1);
-                result(diff_counter+1,8) = v1(2);
+                result(diff_counter+1,7) = v1_list(i,1);
+                result(diff_counter+1,8) = v1_list(i,2);
                 result(diff_counter+1,9) = craters_v1(j,1);
                 result(diff_counter+1,10) = craters_v1(j,2);
                 diff_counter = diff_counter+1;
@@ -156,17 +157,18 @@ function RANSAC_matching()
     end
     
     total_cost = intmax;
-    if height(result) > 4
+    if height(result) >= 4
         for i=1:height(result)
             ct = [result(i, 4) result(i,5)]';
             cs = [result(i, 1) result(i,2)]';
             s = result(i,6)/result(i,3);
+            v1 = [result(i,7), result(i,8)];
             v1_crater = [result(i,9) result(i,10)];
             phi = acos(dot(v1,v1_crater)/(norm(v1)*norm(v1_crater)));
             R = [cos(phi) sin(phi); -sin(phi) cos(phi)];
             
             t = ct - s*R*cs;
-            % disp(t);
+            disp(rad2deg(phi));
             cs_prime = zeros(height(result),2);
     
             for j=1:height(result)
@@ -186,12 +188,27 @@ function RANSAC_matching()
                 
                 A(2*j-1, :) = [-x_s, -y_s, -1, 0, 0, 0, x_t*x_s, x_t*y_s, x_t];
                 A(2*j,:) = [0, 0, 0, -x_s, -y_s, -1, y_t*x_s, y_t*y_s, y_t];
+                C(2*j-1, :) = [-x_s, -y_s, -1, 0, 0, 0, x_t*x_s, x_t*y_s];
+                C(2*j,:) = [0, 0, 0, -x_s, -y_s, -1, y_t*x_s, y_t*y_s];
+                Z(2*j-1,:) = x_t;
+                Z(2*j,:) = y_t;
+                B(3*j-2, :) = [x_s, y_s, 1, 0, 0, 0, 0, 0];
+                B(3*j-1,:) = [0, 0, 0, x_s, y_s, 1, 0, 0];
+                B(3*j,:) = [0, 0, 0, 0, 0, 0, x_s, y_s];
+                Y(3*j-2,:) = x_t;
+                Y(3*j-1,:) = y_t;
+                Y(3*j,:) = 0;
             end
 
-            [~, ~, V] = svd(A);
-            h = V(:, end);
-            h = h / h(end);
+            % [~, ~, V] = svd(A);
+            % h = V(:, end);
+            % h = h / h(end);
 
+            SOL = inv(B'*B)*B'*Y;
+            h = B\Y;
+            h2 = C\Z;
+            SOL3 = pinv(B) * Y;
+            residual = norm(B * h - Y);
             cost = 0;
             inlier_index = 1;
             for j=1:height(cs_prime)
@@ -201,6 +218,8 @@ function RANSAC_matching()
                 y_t = result(j,5);
                 xs_second = (h(1)*x_prime + h(2)*y_prime + h(3))/(h(7)*x_prime + h(8)*y_prime + 1);
                 ys_second = (h(4)*x_prime + h(5)*y_prime + h(6))/(h(7)*x_prime + h(8)*y_prime + 1);
+                xs_second_1 = (h2(1)*x_prime + h2(2)*y_prime + h2(3))/(h2(7)*x_prime + h2(8)*y_prime + 1);
+                ys_second_1 = (h2(4)*x_prime + h2(5)*y_prime + h2(6))/(h2(7)*x_prime + h2(8)*y_prime + 1);
                 cost = cost + ((x_t - xs_second)^2 + (y_t - ys_second)^2);
                 if cost < threshold_cost
                     inliers(inlier_index, 1) = xs_second;
@@ -211,7 +230,7 @@ function RANSAC_matching()
                     inlier_index = inlier_index+1;
                 end
             end
-            disp(cost/height(cs_prime));
+            % disp(cost/height(cs_prime));
             if cost < total_cost
                 t_final = t;
                 R_final = R;
@@ -219,6 +238,7 @@ function RANSAC_matching()
                 total_cost = cost;
                 cs_prime_final = cs_prime;
                 h_final = h;
+                h2_final = h2;
                 inliers_final = inliers;
             end
         end
@@ -235,8 +255,8 @@ function RANSAC_matching()
             x = inliers_final(i,3)*cos(theta) + inliers_final(i,1);
             y = inliers_final(i,3)*sin(theta) + inliers_final(i,2);
             plot(x,y,'Color', inliers_colors(i,:));
-            x2 = inliers_target(i,3)*cos(theta) + result(i,1);
-            y2 = inliers_target(i,3)*sin(theta) + result(i,2);
+            x2 = inliers_target(i,3)*cos(theta) + inliers_target(i,1);
+            y2 = inliers_target(i,3)*sin(theta) + inliers_target(i,2);
             plot(x2,y2,'Color', inliers_colors(i,:));
         end
         hold off
