@@ -254,10 +254,10 @@ function RANSAC_matching()
             % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
             x = inliers_final(i,3)*cos(theta) + inliers_final(i,1);
             y = inliers_final(i,3)*sin(theta) + inliers_final(i,2);
-            plot(x,y,'Color', inliers_colors(i,:));
+            plot(x,y,'Color', 'b');
             x2 = inliers_target(i,3)*cos(theta) + inliers_target(i,1);
             y2 = inliers_target(i,3)*sin(theta) + inliers_target(i,2);
-            plot(x2,y2,'Color', inliers_colors(i,:));
+            plot(x2,y2,'Color', 'r');
         end
         hold off
     
@@ -268,10 +268,10 @@ function RANSAC_matching()
             y = result(i,3)*sin(theta) + result(i,2);
             % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
             % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
-            plot(x,y,'Color', colors(i,:));
+            plot(x,y,'Color', 'b');
             x2 = result(i,6)*cos(theta) + result(i,4);
             y2 = result(i,6)*sin(theta) + result(i,5);
-            plot(x2,y2,'Color', colors(i,:));
+            plot(x2,y2,'Color', 'r');
         end
     else
         disp("Not enough correspondences to resolve fine matching")
