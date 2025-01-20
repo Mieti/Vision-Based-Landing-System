@@ -17,7 +17,7 @@ q_CB = [0 0 0 1];
 % % Camera specifications
 w = 0.11;
 h = 0.11;
-f = 0.08;
+f = 0.135;
 Errf=0.001;
 actualf=f*(1+Errf);
 % 
@@ -28,7 +28,7 @@ landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
 %% Errors for analyses
 Rand_x = -3000 + 6000*rand;
 Rand_y = -3000 + 6000*rand;
-AltitudeError = -100; %-100;
+AltitudeError = -65; %±65;
 PhiError = 1/180*pi;
 ThtError = -1/180*pi;
 PsiError = 5/180*pi; 

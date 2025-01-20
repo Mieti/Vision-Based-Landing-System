@@ -168,7 +168,7 @@ function RANSAC_matching()
             R = [cos(phi) sin(phi); -sin(phi) cos(phi)];
             
             t = ct - s*R*cs;
-            disp(rad2deg(phi));
+            disp(R);
             cs_prime = zeros(height(result),2);
     
             for j=1:height(result)
