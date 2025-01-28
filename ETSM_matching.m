@@ -1,4 +1,4 @@
-function ETSM_matching()
+function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
 
     % read full crater list map and triangles map
     craters = readtable("CraterMapRadius.csv");
@@ -111,15 +111,16 @@ function ETSM_matching()
         end
     end
     if res_counter > 1
-        
         if res_counter >= 5
             centroid_dist = [result_final(:,9)-result_final(:,11), result_final(:,10)-result_final(:,12)];
             centroid_mean = mean(centroid_dist);
             centroid_std = std(centroid_dist);
             
-            result_filtered = result_final(centroid_dist(:,1) <= 3*centroid_std(1) & centroid_dist(:,2) <= 3*centroid_std(2), :);
-            centroid_dist_filtered = centroid_dist(centroid_dist(:,1) <= 3*centroid_std(1) & centroid_dist(:,2) <= 3*centroid_std(2), :);
+            result_filtered = result_final(centroid_dist(:,1) <= 2*centroid_std(1) & centroid_dist(:,2) <= 2*centroid_std(2), :);
+            centroid_dist_filtered = centroid_dist(centroid_dist(:,1) <= 2*centroid_std(1) & centroid_dist(:,2) <= 2*centroid_std(2), :);
             centroid_mean_filtered = mean(centroid_dist_filtered);
+            distance = norm(centroid_mean_filtered);
+            direction = atan2(centroid_mean_filtered(2), centroid_mean_filtered(1));
         end
         %fare media e comporre il vettore traslazione
         data = result_final;
@@ -138,10 +139,10 @@ function ETSM_matching()
         numTriangles2 = size(map, 1);
         % Plot triangles
         cmap = lines(numTriangles);
-        figure(1);
+        figure(3*run-1);
         hold on; % Retain plots for multiple triangles
         axis equal; % Equal scaling for x and y axes
-        title('Triangles from CSV File');
+        title('Coarse Matches');
         xlabel('X'); ylabel('Y');
         
         for i = 1:numTriangles
@@ -150,7 +151,7 @@ function ETSM_matching()
             yCoords = [yA(i), yB(i), yC(i), yA(i)];
             
             % Plot the triangle
-            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'b');
+            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
         end
     
         for i = 1:numTriangles
@@ -160,15 +161,15 @@ function ETSM_matching()
             yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
             
             % Plot the triangle
-            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'r');
+            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');
         end
         
         hold off;
 
-        figure(2);
+        figure(3*run);
         hold on; % Retain plots for multiple triangles
         axis equal; % Equal scaling for x and y axes
-        title('Triangles from CSV File');
+        title('Matches After outliers filter');
         xlabel('X'); ylabel('Y');
         
         data = result_filtered;
@@ -183,8 +184,8 @@ function ETSM_matching()
             xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
             yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
             % Plot the triangle
-            plot(xCoords, yCoords, '-', 'LineWidth', 1, 'Color', 'b');
-            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'r');        
+            plot(xCoords, yCoords, '-', 'LineWidth', 1, 'Color', 'r');
+            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');        
         end
     end
 end
