@@ -116,8 +116,8 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
             centroid_mean = mean(centroid_dist);
             centroid_std = std(centroid_dist);
             
-            result_filtered = result_final(centroid_dist(:,1) <= 2*centroid_std(1) & centroid_dist(:,2) <= 2*centroid_std(2), :);
-            centroid_dist_filtered = centroid_dist(centroid_dist(:,1) <= 2*centroid_std(1) & centroid_dist(:,2) <= 2*centroid_std(2), :);
+            result_filtered = result_final(abs(centroid_dist(:,1)-centroid_mean(1)) <= 3*centroid_std(1) & abs(centroid_dist(:,2)-centroid_mean(2)) <= 3*centroid_std(2), :);
+            centroid_dist_filtered = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
             centroid_mean_filtered = mean(centroid_dist_filtered);
             distance = norm(centroid_mean_filtered);
             direction = atan2(centroid_mean_filtered(2), centroid_mean_filtered(1));
