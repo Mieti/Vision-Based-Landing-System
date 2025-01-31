@@ -29,7 +29,7 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 10;
+nrun = 5;
 
 mc_results = struct('ACT_Quaternion', [], ...
                     'EST_Quaternion', [], ...
@@ -40,7 +40,7 @@ mc_results = struct('ACT_Quaternion', [], ...
                     'Distance', [], ...
                     'Direction', [], ...
                     'Time', [], ...
-                    'Accuracy', []);
+                    'Precision', []);
 
 for run=1:nrun
     %% MC VARIABLES
@@ -222,13 +222,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    tic 
-        [translation, distance, direction] = ETSM_matching(run);
-    time = toc;
-
-    % tic
-    %     RANSAC_matching(run);
+    % tic 
+    %     [translation, distance, direction] = ETSM_matching(run);
     % time = toc;
+
+    tic
+        [translation, distance, direction] = RANSAC_matching(run);
+    time = toc;
 
     mc_results(run).ACT_Quaternion = q0;
     mc_results(run).EST_Quaternion = q0_known;
@@ -239,6 +239,6 @@ for run=1:nrun
     mc_results(run).Distance = distance;
     mc_results(run).Direction = direction;
     mc_results(run).Time = time;
-    % mc_results(run).Accuracy = accuracy;
+    % mc_results(run).Precision = precision;
 end
 mc_results = struct2table(mc_results);

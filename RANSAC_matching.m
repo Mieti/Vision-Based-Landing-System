@@ -1,8 +1,4 @@
-function RANSAC_matching(run)
-
-    % clear all
-    close all
-    clc
+function [mean_translation, distance, direction] = RANSAC_matching(run)
 
     % read full crater list map and triangles map
     craters = table2array(readtable("CraterMapRadius.csv"));
@@ -16,7 +12,9 @@ function RANSAC_matching(run)
     threshold = 0.7;
     nbins = 4;
     threshold_cost = 1e6;
-
+    mean_translation = [0,0];
+    distance = 0;
+    direction = 0;
     % create histogram for each camera crater
     for i=1:height(camera_craters)
         center = camera_craters(i, 1:2);
@@ -237,6 +235,7 @@ function RANSAC_matching(run)
                 R_final = R;
                 s_final = s;
                 total_cost = cost;
+                cs_final = result;
                 cs_prime_final = cs_prime;
                 h_final = h;
                 h2_final = h2;
@@ -245,6 +244,12 @@ function RANSAC_matching(run)
         end
 
         if size(inliers_final) > 0
+            inliers_target = result(inliers_final(:,4), [4,5,6]);
+            cs_final_t = [result(inliers_final(:,4), [1,2,3])];
+            mean_translation = mean([inliers_final(:,1)-cs_final_t(:,1), inliers_final(:,2)-cs_final_t(:,2)]);
+            distance = norm(mean_translation);
+            direction = atan2(mean_translation(2), mean_translation(1));
+
             figure(3*run-1);
             title('Fine Matches');
             xlabel('X'); ylabel('Y');
@@ -252,7 +257,7 @@ function RANSAC_matching(run)
             theta = linspace(0,2*pi);
             colors = lines(height(result));
             inliers_colors = lines(height(inliers_final));
-            inliers_target = result(inliers_final(:,4), [4,5,6]);
+            
             for i=1:height(inliers_final)
                 % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
                 % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
