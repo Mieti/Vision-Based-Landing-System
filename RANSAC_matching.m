@@ -246,9 +246,13 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
         if size(inliers_final) > 0
             inliers_target = result(inliers_final(:,4), [4,5,6]);
             cs_final_t = [result(inliers_final(:,4), [1,2,3])];
-            mean_translation = mean([inliers_final(:,1)-cs_final_t(:,1), inliers_final(:,2)-cs_final_t(:,2)]);
+            if height(inliers_final) > 1
+                mean_translation = mean([inliers_final(:,1)-cs_final_t(:,1), inliers_final(:,2)-cs_final_t(:,2)]);
+            else
+                mean_translation = [inliers_final(:,1)-cs_final_t(:,1), inliers_final(:,2)-cs_final_t(:,2)];
+            end
             distance = norm(mean_translation);
-            direction = atan2(mean_translation(2), mean_translation(1));
+            direction = atan2d(mean_translation(2), mean_translation(1));
 
             figure(3*run-1);
             title('Fine Matches');

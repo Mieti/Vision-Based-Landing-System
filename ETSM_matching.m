@@ -120,7 +120,7 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
             centroid_dist_filtered = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
             centroid_mean_filtered = mean(centroid_dist_filtered);
             distance = norm(centroid_mean_filtered);
-            direction = atan2(centroid_mean_filtered(2), centroid_mean_filtered(1));
+            direction = atan2d(centroid_mean_filtered(2), centroid_mean_filtered(1));
         end
         %fare media e comporre il vettore traslazione
         data = result_final;
