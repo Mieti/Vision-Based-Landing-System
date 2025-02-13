@@ -11,7 +11,7 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
     m = 4;
     threshold = 0.7;
     nbins = 4;
-    threshold_cost = 1e6;
+    threshold_cost = 5e6;
     mean_translation = [0,0];
     distance = 0;
     direction = 0;
@@ -174,72 +174,76 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             end
     
             numCraters = height(result);
-            idxs = randperm(numCraters, 4);
-            cs_selected = cs_prime(idxs, :);
-            ct_selected = result(idxs, [4,5]);
-
-            for j=1:4
-                x_t = ct_selected(j,1);
-                y_t = ct_selected(j,2);
-                x_s = cs_selected(j,1);
-                y_s = cs_selected(j,2);
+            for rand_i=1:4
+                idxs = randperm(numCraters, 4);
+                cs_selected = cs_prime(idxs, :);
+                ct_selected = result(idxs, [4,5]);
                 
-                A(2*j-1, :) = [-x_s, -y_s, -1, 0, 0, 0, x_t*x_s, x_t*y_s, x_t];
-                A(2*j,:) = [0, 0, 0, -x_s, -y_s, -1, y_t*x_s, y_t*y_s, y_t];
-                C(2*j-1, :) = [-x_s, -y_s, -1, 0, 0, 0, x_t*x_s, x_t*y_s];
-                C(2*j,:) = [0, 0, 0, -x_s, -y_s, -1, y_t*x_s, y_t*y_s];
-                Z(2*j-1,:) = x_t;
-                Z(2*j,:) = y_t;
-                B(3*j-2, :) = [x_s, y_s, 1, 0, 0, 0, 0, 0];
-                B(3*j-1,:) = [0, 0, 0, x_s, y_s, 1, 0, 0];
-                B(3*j,:) = [0, 0, 0, 0, 0, 0, x_s, y_s];
-                Y(3*j-2,:) = x_t;
-                Y(3*j-1,:) = y_t;
-                Y(3*j,:) = 0;
-            end
-
-            % [~, ~, V] = svd(A);
-            % h = V(:, end);
-            % h = h / h(end);
-
-            SOL = inv(B'*B)*B'*Y;
-            h = B\Y;
-            h2 = C\Z;
-            SOL3 = pinv(B) * Y;
-            residual = norm(B * h - Y);
-            cost = 0;
-            inlier_index = 1;
-            inliers = [];
-            for j=1:height(cs_prime)
-                x_prime = cs_prime(j,1);
-                y_prime = cs_prime(j,2);
-                x_t = result(j,4);
-                y_t = result(j,5);
-                xs_second = (h(1)*x_prime + h(2)*y_prime + h(3))/(h(7)*x_prime + h(8)*y_prime + 1);
-                ys_second = (h(4)*x_prime + h(5)*y_prime + h(6))/(h(7)*x_prime + h(8)*y_prime + 1);
-                xs_second_1 = (h2(1)*x_prime + h2(2)*y_prime + h2(3))/(h2(7)*x_prime + h2(8)*y_prime + 1);
-                ys_second_1 = (h2(4)*x_prime + h2(5)*y_prime + h2(6))/(h2(7)*x_prime + h2(8)*y_prime + 1);
-                cost = cost + ((x_t - xs_second)^2 + (y_t - ys_second)^2);
-                if cost < threshold_cost
-                    inliers(inlier_index, 1) = xs_second;
-                    inliers(inlier_index, 2) = ys_second;
-                    inliers(inlier_index, 3) = result(j,3);
-                    inliers(inlier_index, 4) = j;
-                    inliers(inlier_index, 5) = cost;
-                    inlier_index = inlier_index+1;
+                for j=1:4
+                    x_t = ct_selected(j,1);
+                    y_t = ct_selected(j,2);
+                    x_s = cs_selected(j,1);
+                    y_s = cs_selected(j,2);
+                    
+                    A(2*j-1, :) = [-x_s, -y_s, -1, 0, 0, 0, x_t*x_s, x_t*y_s, x_t];
+                    A(2*j,:) = [0, 0, 0, -x_s, -y_s, -1, y_t*x_s, y_t*y_s, y_t];
+                    C(2*j-1, :) = [-x_s, -y_s, -1, 0, 0, 0, x_t*x_s, x_t*y_s];
+                    C(2*j,:) = [0, 0, 0, -x_s, -y_s, -1, y_t*x_s, y_t*y_s];
+                    Z(2*j-1,:) = x_t;
+                    Z(2*j,:) = y_t;
+                    B(3*j-2, :) = [x_s, y_s, 1, 0, 0, 0, 0, 0];
+                    B(3*j-1,:) = [0, 0, 0, x_s, y_s, 1, 0, 0];
+                    B(3*j,:) = [0, 0, 0, 0, 0, 0, x_s, y_s];
+                    Y(3*j-2,:) = x_t;
+                    Y(3*j-1,:) = y_t;
+                    Y(3*j,:) = 0;
                 end
-            end
-            % disp(cost/height(cs_prime));
-            if cost < total_cost
-                t_final = t;
-                R_final = R;
-                s_final = s;
-                total_cost = cost;
-                cs_final = result;
-                cs_prime_final = cs_prime;
-                h_final = h;
-                h2_final = h2;
-                inliers_final = inliers;
+    
+                % [~, ~, V] = svd(A);
+                % h = V(:, end);
+                % h = h / h(end);
+    
+                SOL = inv(B'*B)*B'*Y;
+                h = B\Y;
+                h2 = C\Z;
+                SOL3 = pinv(B) * Y;
+                residual = norm(B * h - Y);
+                cost = 0;
+                inlier_index = 1;
+                inliers = [];
+                for j=1:height(cs_prime)
+                    x_prime = cs_prime(j,1);
+                    y_prime = cs_prime(j,2);
+                    x_t = result(j,4);
+                    y_t = result(j,5);
+                    xs_second = (h(1)*x_prime + h(2)*y_prime + h(3))/(h(7)*x_prime + h(8)*y_prime + 1);
+                    ys_second = (h(4)*x_prime + h(5)*y_prime + h(6))/(h(7)*x_prime + h(8)*y_prime + 1);
+                    xs_second_1 = (h2(1)*x_prime + h2(2)*y_prime + h2(3))/(h2(7)*x_prime + h2(8)*y_prime + 1);
+                    ys_second_1 = (h2(4)*x_prime + h2(5)*y_prime + h2(6))/(h2(7)*x_prime + h2(8)*y_prime + 1);
+                    singular_cost = ((x_t - xs_second)^2 + (y_t - ys_second)^2);
+                    cost = cost + singular_cost;
+                    if singular_cost < threshold_cost
+                        inliers(inlier_index, 1) = xs_second;
+                        inliers(inlier_index, 2) = ys_second;
+                        inliers(inlier_index, 3) = result(j,3);
+                        inliers(inlier_index, 4) = j;
+                        inliers(inlier_index, 5) = cost;
+                        inlier_index = inlier_index+1;
+                    end
+                end
+                % disp(cost/height(cs_prime));
+                if cost < total_cost
+                    t_final = t;
+                    R_final = R;
+                    phi_final = phi;
+                    s_final = s;
+                    total_cost = cost;
+                    cs_final = result;
+                    cs_prime_final = cs_prime;
+                    h_final = h;
+                    h2_final = h2;
+                    inliers_final = inliers;
+                end
             end
         end
 
@@ -247,12 +251,12 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             inliers_target = result(inliers_final(:,4), [4,5,6]);
             cs_final_t = [result(inliers_final(:,4), [1,2,3])];
             if height(inliers_final) > 1
-                mean_translation = mean([inliers_final(:,1)-cs_final_t(:,1), inliers_final(:,2)-cs_final_t(:,2)]);
+                mean_translation = mean([inliers_final(:,1)-inliers_target(:,1), inliers_final(:,2)-inliers_target(:,2)]);
             else
-                mean_translation = [inliers_final(:,1)-cs_final_t(:,1), inliers_final(:,2)-cs_final_t(:,2)];
+                mean_translation = [inliers_final(:,1)-inliers_target(:,1), inliers_final(:,2)-inliers_target(:,2)];
             end
             distance = norm(mean_translation);
-            direction = atan2d(mean_translation(2), mean_translation(1));
+            direction = phi_final;%atan2d(mean_translation(2), mean_translation(1));
 
             figure(3*run-1);
             title('Fine Matches');

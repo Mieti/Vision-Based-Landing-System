@@ -29,7 +29,7 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 20;
+nrun = 10;
 
 mc_results = struct('ACT_Quaternion', [], ...
                     'EST_Quaternion', [], ...
@@ -37,8 +37,8 @@ mc_results = struct('ACT_Quaternion', [], ...
                     'ACT_PosY', [], ...
                     'ACT_PosZ', [], ...
                     'Translation', [], ...
-                    'Distance', [], ...
-                    'Direction', [], ...
+                    'Distance_err', [], ...
+                    'Direction_err', [], ...
                     'Time', [], ...
                     'Precision', []);
 
@@ -53,9 +53,10 @@ for run=1:nrun
     SIGMARot0=5/3; 
     Rot0 =(MURot0+SIGMARot0*INIT_randn_values(1,run));
     AngRot0=2*pi*(INIT_rand_values(1,run)-0.5);
-    RotNomX0=(Rot0/180*pi)*cos(AngRot0);  
-    RotNomY0=(Rot0/180*pi)*sin(AngRot0);
-    RotNomZ0=2/180*pi*(INIT_rand_values(2,run)-0.5); % ±180 (2*pi)
+    RotNomX0= (Rot0/180*pi)*cos(AngRot0);  
+    RotNomY0= (Rot0/180*pi)*sin(AngRot0);
+    RotNomZ0=2*pi*(INIT_rand_values(2,run)-0.5); % ±180 (2*pi)
+    disp(rad2deg(RotNomZ0));
     MatNom(1,1)=cos(RotNomY0)*cos(RotNomZ0);
     MatNom(1,2)=cos(RotNomY0)*sin(RotNomZ0);
     MatNom(1,3)=-sin(RotNomY0);
@@ -159,7 +160,8 @@ for run=1:nrun
     Rand_z = 4100+130*(INIT_rand_values(5,run)-0.5);
     ACT_PosZ.signals.values(1:1) = Rand_z;
 
-
+    % Rand_x = 0;
+    % Rand_y = 0;
     Rand_x = -3000 + 6000*INIT_rand_values(6, run);
     Rand_y = -3000 + 6000*INIT_rand_values(7, run);
 
@@ -174,7 +176,7 @@ for run=1:nrun
     ScalarError = sqrt(1-XAxisRotError^2-YAxisRotError^2-ZAxisRotError^2);
 
     %% SIMULATION
-    open('LVS_model_upgrade.slx');
+    %open('LVS_model_upgrade.slx');
     SimOut = sim('LVS_model_upgrade.slx');
     cam_landmarks = SimOut.landmarks;
     num_landmarks = SimOut.num_landmarks;
@@ -222,13 +224,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    % tic 
-    %     [translation, distance, direction] = ETSM_matching(run);
-    % time = toc;
-
-    tic
-        [translation, distance, direction] = RANSAC_matching(run);
+    tic 
+        [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
     time = toc;
+
+    % tic
+    %     [translation, distance, direction] = RANSAC_matching(run);
+    % time = toc;
 
     mc_results(run).ACT_Quaternion = q0;
     mc_results(run).EST_Quaternion = q0_known;
@@ -236,8 +238,9 @@ for run=1:nrun
     mc_results(run).ACT_PosY = Rand_y;
     mc_results(run).ACT_PosZ = Rand_z;
     mc_results(run).Translation = translation;
-    mc_results(run).Distance = distance;
-    mc_results(run).Direction = direction;
+    mc_results(run).Distance_err = distance;
+    mc_results(run).Direction_err = abs(direction-rad2deg(RotNomZ0));
+    % mc_results(run).Distance_err = norm(translation);
     mc_results(run).Time = time;
     % mc_results(run).Precision = precision;
 end

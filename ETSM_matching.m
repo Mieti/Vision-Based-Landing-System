@@ -1,4 +1,4 @@
-function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
+function [centroid_mean_filtered, distance, direction] = ETSM_matching(run, Rand_x, Rand_y)
 
     % read full crater list map and triangles map
     craters = readtable("CraterMapRadius.csv");
@@ -15,7 +15,7 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
     mind = 10;
     gamma = 1;
     match = 0;
-    tol = 1e-1;
+    tol = 1e-4;
     res_counter = 1;
 
     % 2 nested loops to compare 2 triangles
@@ -73,7 +73,8 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
                 else
                     d1_shot = CA_shot;
                 end
-
+                angle_rotation = d1_shot-d1;
+                angles_rotation(i) = rad2deg(atan2(angle_rotation(2), angle_rotation(1)));
                 % if ((abs(A(1) - (-1163.91)) < tol || abs(B(1) - (-1163.91)) < tol || abs(C(1) - (-1163.91)) < tol)  && (abs(x(1) - (-1156.92)) < tol || abs(x(2) - (-1156.92)) < tol || abs(x(3) - (-1156.92)) < tol)) 
                 %     disp("TROVATO IL PUNTO");
                 % end
@@ -90,7 +91,7 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
                 Inner = abs(dot(d1, dcenter) - (dot(d1_shot, dcenter_shot)/gamma^2));
                 Cross = abs((d1(1)*dcenter(2) - d1(2)*dcenter(1)) - ((d1_shot(1)*dcenter_shot(2) - d1_shot(2)*dcenter_shot(1))/gamma^2));
                 if Inner^2+Cross^2 < diff*norm(dcenter)
-                    disp("MATCH FOUND!");
+                    %disp("MATCH FOUND!");
                     %match = 1;
                     result_final(res_counter, 1) = x(1);
                     result_final(res_counter, 2) = y(1);
@@ -104,6 +105,14 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
                     result_final(res_counter, 10) = centroid(2);
                     result_final(res_counter, 11) = centroid_shot(1);
                     result_final(res_counter, 12) = centroid_shot(2);
+                    result_final(res_counter, 13) = d1(1);
+                    result_final(res_counter, 14) = d1(2);
+                    result_final(res_counter, 15) = dcenter(1);
+                    result_final(res_counter, 16) = dcenter(2);
+                    result_final(res_counter, 17) = d1_shot(1);
+                    result_final(res_counter, 18) = d1_shot(2);
+                    result_final(res_counter, 19) = dcenter_shot(1);
+                    result_final(res_counter, 20) = dcenter_shot(2);
                     res_counter = res_counter + 1;
                     break
                 end
@@ -111,16 +120,53 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
         end
     end
     if res_counter > 1
+        cs = [result_final(:,11), result_final(:,12)];
+        ct = [result_final(:,9), result_final(:,10)];
+        cs_d1 = [result_final(:,17), result_final(:,18)];
+        cs_dcenter = [result_final(:,19), result_final(:,20)];
+        ct_d1 = [result_final(:,13), result_final(:,14)];
+        ct_dcenter = [result_final(:,15), result_final(:,16)];
+        for i=1:height(cs_d1)
+        theta(i,:) = acos(dot(cs_d1(i,:),ct_d1(i,:))./(norm(cs_d1(i,:))*norm(ct_d1(i,:))));
+        delta(i,:) = acos(dot(cs_dcenter(i,:),ct_dcenter(i,:))./(norm(cs_dcenter(i,:))*norm(ct_dcenter(i,:))));
+        
+        
+        cross_product = cs_dcenter(i,1) * ct_dcenter(i,2) - cs_dcenter(i,2) * ct_dcenter(i,1);
+        
+        % Compute the dot product
+        dot_product = dot(cs_dcenter(i,:), ct_dcenter(i,:));
+        
+        % Calculate the signed angle (in radians)
+        angle_rad(i,:) = atan2(cross_product, dot_product);
+
+
+
+        end
+        [cs_unique, ia, ic] = unique(cs, 'rows', 'stable');
+        % rotation_angle(:,1) = atan2(cs(:,1).*ct(:,2) - cs(:,2).*ct(:,1), cs(:,1).*ct(:,1) + cs(:,2).*ct(:,2));
+        rotation_angle = -angle_rad;
+        rotation_mean = mean(rotation_angle);
+        rotation_std = std(rotation_angle);
+        rotation_filtered = rotation_angle(abs(rotation_angle(:,1)-rotation_mean) <= 3*rotation_std, :);
+        phi = mean(rotation_filtered);
+        disp(rad2deg(phi));
+        R_mat = [cos(phi), sin(phi); -sin(phi), cos(phi)];
+        cs = (R_mat*cs')';
+        result_final(:,11) = cs(:,1);
+        result_final(:,12) = cs(:,2);
         if res_counter >= 5
             centroid_dist = [result_final(:,9)-result_final(:,11), result_final(:,10)-result_final(:,12)];
             centroid_mean = mean(centroid_dist);
             centroid_std = std(centroid_dist);
             
             result_filtered = result_final(abs(centroid_dist(:,1)-centroid_mean(1)) <= 3*centroid_std(1) & abs(centroid_dist(:,2)-centroid_mean(2)) <= 3*centroid_std(2), :);
+            cs = [result_filtered(:,11), result_filtered(:, 12)];
+            ct = [result_filtered(:,9), result_filtered(:, 10)];
             centroid_dist_filtered = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
             centroid_mean_filtered = mean(centroid_dist_filtered);
-            distance = norm(centroid_mean_filtered);
-            direction = atan2d(centroid_mean_filtered(2), centroid_mean_filtered(1));
+            % distance = norm(mean([result_filtered(:,9),result_filtered(:,10)]-([result_filtered(:,11), result_filtered(:,12)]+centroid_mean_filtered)));
+            distance = mean(vecnorm(ct(:,:)-(cs(:,:)+centroid_mean_filtered),2,2));
+            direction = rad2deg(-phi);
         end
         %fare media e comporre il vettore traslazione
         data = result_final;
@@ -134,7 +180,7 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
         xB2 = map(:, 4); yB2 = map(:, 5);
         xC2 = map(:, 7); yC2 = map(:, 8);
     
-    % Number of triangles
+        % Number of triangles
         numTriangles = size(data, 1);
         numTriangles2 = size(map, 1);
         % Plot triangles
@@ -175,16 +221,21 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run)
         data = result_filtered;
         for i = 1:height(result_filtered)
             map_index = data(i, 6);
-            xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
-            xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
-            xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
+            vA = R_mat*[data(i, 1),data(i, 2)]'+centroid_mean_filtered';
+            vB = R_mat*[data(i, 4),data(i, 5)]'+centroid_mean_filtered';
+            vC = R_mat*[data(i, 7),data(i, 8)]'+centroid_mean_filtered';
+            % xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
+            % xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
+            % xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
             % Get vertices of the current triangle
-            xCoords = [xA, xB, xC, xA]; % Close the triangle
-            yCoords = [yA, yB, yC, yA];
+            % xCoords = [xA, xB, xC, xA]; % Close the triangle
+            % yCoords = [yA, yB, yC, yA];
+            xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
+            yCoords = [vA(2), vB(2), vC(2), vA(2)];
             xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
             yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
             % Plot the triangle
-            plot(xCoords, yCoords, '-', 'LineWidth', 1, 'Color', 'r');
+            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
             plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');        
         end
     end
