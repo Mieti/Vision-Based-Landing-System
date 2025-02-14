@@ -258,40 +258,40 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             distance = norm(mean_translation);
             direction = phi_final;%atan2d(mean_translation(2), mean_translation(1));
 
-            figure(3*run-1);
-            title('Fine Matches');
-            xlabel('X'); ylabel('Y');
-            hold on;
-            theta = linspace(0,2*pi);
-            colors = lines(height(result));
-            inliers_colors = lines(height(inliers_final));
+            % figure(3*run-1);
+            % title('Fine Matches');
+            % xlabel('X'); ylabel('Y');
+            % hold on;
+            % theta = linspace(0,2*pi);
+            % colors = lines(height(result));
+            % inliers_colors = lines(height(inliers_final));
             
-            for i=1:height(inliers_final)
-                % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
-                % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
-                x = inliers_final(i,3)*cos(theta) + inliers_final(i,1);
-                y = inliers_final(i,3)*sin(theta) + inliers_final(i,2);
-                plot(x,y,'Color', 'r');
-                x2 = inliers_target(i,3)*cos(theta) + inliers_target(i,1);
-                y2 = inliers_target(i,3)*sin(theta) + inliers_target(i,2);
-                plot(x2,y2,'Color', 'b');
-            end
-            hold off
+            % for i=1:height(inliers_final)
+            %     % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
+            %     % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
+            %     x = inliers_final(i,3)*cos(theta) + inliers_final(i,1);
+            %     y = inliers_final(i,3)*sin(theta) + inliers_final(i,2);
+            %     plot(x,y,'Color', 'r');
+            %     x2 = inliers_target(i,3)*cos(theta) + inliers_target(i,1);
+            %     y2 = inliers_target(i,3)*sin(theta) + inliers_target(i,2);
+            %     plot(x2,y2,'Color', 'b');
+            % end
+            % hold off
         
-            figure(3*run);
-            title('Histogram Matches');
-            xlabel('X'); ylabel('Y');
-            hold on
-            for i=1:height(result)
-                x = result(i,3)*cos(theta) + result(i,1);
-                y = result(i,3)*sin(theta) + result(i,2);
-                % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
-                % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
-                plot(x,y,'Color', 'r');
-                x2 = result(i,6)*cos(theta) + result(i,4);
-                y2 = result(i,6)*sin(theta) + result(i,5);
-                plot(x2,y2,'Color', 'b');
-            end
+            % figure(3*run);
+            % title('Histogram Matches');
+            % xlabel('X'); ylabel('Y');
+            % hold on
+            % for i=1:height(result)
+            %     x = result(i,3)*cos(theta) + result(i,1);
+            %     y = result(i,3)*sin(theta) + result(i,2);
+            %     % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
+            %     % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
+            %     plot(x,y,'Color', 'r');
+            %     x2 = result(i,6)*cos(theta) + result(i,4);
+            %     y2 = result(i,6)*sin(theta) + result(i,5);
+            %     plot(x2,y2,'Color', 'b');
+            % end
         end
     else
         disp("Not enough correspondences to resolve fine matching")

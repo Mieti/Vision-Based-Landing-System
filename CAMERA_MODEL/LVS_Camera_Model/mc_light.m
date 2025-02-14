@@ -29,7 +29,7 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 10;
+nrun = 100;
 
 mc_results = struct('ACT_Quaternion', [], ...
                     'EST_Quaternion', [], ...
@@ -184,18 +184,18 @@ for run=1:nrun
 
     num_landmarks_cat=length(Cat.clandmarkX);
 
-    figure(3*run-2); %Simulation Init
-    
-    for k=1:num_landmarks_cat
-        CatX(k)=Cat.clandmarkX(k);
-        CatY(k)=Cat.clandmarkY(k);
-        Catr(k)=Cat.rlandmark(k);
-        theta = linspace(0,2*pi);
-        Catx = Catr(k)*cos(theta) + CatX(k);
-        Caty = Catr(k)*sin(theta) + CatY(k);
-        plot(Catx,Caty,'b')
-        hold on;
-    end
+    % figure(3*run-2); %Simulation Init
+    % 
+    % for k=1:num_landmarks_cat
+    %     CatX(k)=Cat.clandmarkX(k);
+    %     CatY(k)=Cat.clandmarkY(k);
+    %     Catr(k)=Cat.rlandmark(k);
+    %     theta = linspace(0,2*pi);
+    %     Catx = Catr(k)*cos(theta) + CatX(k);
+    %     Caty = Catr(k)*sin(theta) + CatY(k);
+    %     plot(Catx,Caty,'b')
+    %     hold on;
+    % end
     
     num_landmarks_found=0;
     for j=1:100
@@ -213,8 +213,8 @@ for run=1:nrun
         theta = linspace(0,2*pi);
         Camx = Camr(i)*cos(theta) + CamX(i);
         Camy = Camr(i)*sin(theta) + CamY(i); 
-        plot(Camx,Camy,'r')
-        hold on;
+        % plot(Camx,Camy,'r')
+        % hold on;
     end
     % create catalogue for matching algorithm
     cameraShot.PosX = CamX';
@@ -224,13 +224,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    tic 
-        [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
-    time = toc;
-
-    % tic
-    %     [translation, distance, direction] = RANSAC_matching(run);
+    % tic 
+    %     [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
     % time = toc;
+
+    tic
+        [translation, distance, direction] = RANSAC_matching(run);
+    time = toc;
 
     mc_results(run).ACT_Quaternion = q0;
     mc_results(run).EST_Quaternion = q0_known;

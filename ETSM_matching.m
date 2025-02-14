@@ -169,74 +169,74 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run, Rand
             direction = rad2deg(-phi);
         end
         %fare media e comporre il vettore traslazione
-        data = result_final;
-        map = readmatrix("Triangles_with_angles.csv");
-    
-        xA = data(:, 1); yA = data(:, 2);
-        xB = data(:, 4); yB = data(:, 5);
-        xC = data(:, 7); yC = data(:, 8);
-        
-        xA2 = map(:, 1); yA2 = map(:, 2);
-        xB2 = map(:, 4); yB2 = map(:, 5);
-        xC2 = map(:, 7); yC2 = map(:, 8);
-    
-        % Number of triangles
-        numTriangles = size(data, 1);
-        numTriangles2 = size(map, 1);
-        % Plot triangles
-        cmap = lines(numTriangles);
-        figure(3*run-1);
-        hold on; % Retain plots for multiple triangles
-        axis equal; % Equal scaling for x and y axes
-        title('Coarse Matches');
-        xlabel('X'); ylabel('Y');
-        
-        for i = 1:numTriangles
-            % Get vertices of the current triangle
-            xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
-            yCoords = [yA(i), yB(i), yC(i), yA(i)];
-            
-            % Plot the triangle
-            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
-        end
-    
-        for i = 1:numTriangles
-            map_index = data(i, 6);
-            % Get vertices of the current triangle
-            xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
-            yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
-            
-            % Plot the triangle
-            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');
-        end
-        
-        hold off;
-
-        figure(3*run);
-        hold on; % Retain plots for multiple triangles
-        axis equal; % Equal scaling for x and y axes
-        title('Matches After outliers filter');
-        xlabel('X'); ylabel('Y');
-        
-        data = result_filtered;
-        for i = 1:height(result_filtered)
-            map_index = data(i, 6);
-            vA = R_mat*[data(i, 1),data(i, 2)]'+centroid_mean_filtered';
-            vB = R_mat*[data(i, 4),data(i, 5)]'+centroid_mean_filtered';
-            vC = R_mat*[data(i, 7),data(i, 8)]'+centroid_mean_filtered';
-            % xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
-            % xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
-            % xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
-            % Get vertices of the current triangle
-            % xCoords = [xA, xB, xC, xA]; % Close the triangle
-            % yCoords = [yA, yB, yC, yA];
-            xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
-            yCoords = [vA(2), vB(2), vC(2), vA(2)];
-            xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
-            yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
-            % Plot the triangle
-            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
-            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');        
-        end
+        % data = result_final;
+        % map = readmatrix("Triangles_with_angles.csv");
+        % 
+        % xA = data(:, 1); yA = data(:, 2);
+        % xB = data(:, 4); yB = data(:, 5);
+        % xC = data(:, 7); yC = data(:, 8);
+        % 
+        % xA2 = map(:, 1); yA2 = map(:, 2);
+        % xB2 = map(:, 4); yB2 = map(:, 5);
+        % xC2 = map(:, 7); yC2 = map(:, 8);
+        % 
+        % % Number of triangles
+        % numTriangles = size(data, 1);
+        % numTriangles2 = size(map, 1);
+        % % Plot triangles
+        % cmap = lines(numTriangles);
+        % figure(3*run-1);
+        % hold on; % Retain plots for multiple triangles
+        % axis equal; % Equal scaling for x and y axes
+        % title('Coarse Matches');
+        % xlabel('X'); ylabel('Y');
+        % 
+        % for i = 1:numTriangles
+        %     % Get vertices of the current triangle
+        %     xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
+        %     yCoords = [yA(i), yB(i), yC(i), yA(i)];
+        % 
+        %     % Plot the triangle
+        %     plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
+        % end
+        % 
+        % for i = 1:numTriangles
+        %     map_index = data(i, 6);
+        %     % Get vertices of the current triangle
+        %     xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+        %     yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+        % 
+        %     % Plot the triangle
+        %     plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');
+        % end
+        % 
+        % hold off;
+        % 
+        % figure(3*run);
+        % hold on; % Retain plots for multiple triangles
+        % axis equal; % Equal scaling for x and y axes
+        % title('Matches After outliers filter');
+        % xlabel('X'); ylabel('Y');
+        % 
+        % data = result_filtered;
+        % for i = 1:height(result_filtered)
+        %     map_index = data(i, 6);
+        %     vA = R_mat*[data(i, 1),data(i, 2)]'+centroid_mean_filtered';
+        %     vB = R_mat*[data(i, 4),data(i, 5)]'+centroid_mean_filtered';
+        %     vC = R_mat*[data(i, 7),data(i, 8)]'+centroid_mean_filtered';
+        %     % xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
+        %     % xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
+        %     % xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
+        %     % Get vertices of the current triangle
+        %     % xCoords = [xA, xB, xC, xA]; % Close the triangle
+        %     % yCoords = [yA, yB, yC, yA];
+        %     xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
+        %     yCoords = [vA(2), vB(2), vC(2), vA(2)];
+        %     xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+        %     yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+        %     % Plot the triangle
+        %     plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
+        %     plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');        
+        % end
     end
 end
