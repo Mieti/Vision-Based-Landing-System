@@ -7,8 +7,8 @@ craters = table2array(readtable("CraterMapRadius.csv"));
     % read camera shot crater list and triangle algorithm on shot image
     % craters = table2array(readtable("cameraShotSim.csv"));
 
-    k = 5;
-    m = 4;
+    k = 7;
+    m = 5;
     % threshold = 0.7;
     nbins = 4;
     craters_v1 = zeros(height(craters),2);

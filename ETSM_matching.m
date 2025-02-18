@@ -11,8 +11,8 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run, Rand
 
     craters_coordinates = craters{:, [1,2]};
     camera_craters_coordinates = camera_craters{:, [1,2]};
-    diff = 10000;
-    mind = 10;
+    diff = 4e3;
+    mind = 3;
     gamma = 1;
     match = 0;
     tol = 1e-4;
@@ -160,8 +160,13 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run, Rand
             centroid_std = std(centroid_dist);
             
             result_filtered = result_final(abs(centroid_dist(:,1)-centroid_mean(1)) <= 3*centroid_std(1) & abs(centroid_dist(:,2)-centroid_mean(2)) <= 3*centroid_std(2), :);
+            centroid_dist = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
+            centroid_mean = mean(centroid_dist);
+            centroid_std = std(centroid_dist);
+            result_filtered = result_filtered(abs(centroid_dist(:,1)-centroid_mean(1)) <= 3*centroid_std(1) & abs(centroid_dist(:,2)-centroid_mean(2)) <= 3*centroid_std(2), :);
             cs = [result_filtered(:,11), result_filtered(:, 12)];
             ct = [result_filtered(:,9), result_filtered(:, 10)];
+            
             centroid_dist_filtered = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
             centroid_mean_filtered = mean(centroid_dist_filtered);
             % distance = norm(mean([result_filtered(:,9),result_filtered(:,10)]-([result_filtered(:,11), result_filtered(:,12)]+centroid_mean_filtered)));

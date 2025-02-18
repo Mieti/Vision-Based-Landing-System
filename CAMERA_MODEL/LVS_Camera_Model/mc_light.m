@@ -224,13 +224,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    % tic 
-    %     [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
-    % time = toc;
-
-    tic
-        [translation, distance, direction] = RANSAC_matching(run);
+    tic 
+        [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
     time = toc;
+    % 
+    % tic
+    %     [translation, distance, direction] = RANSAC_matching(run);
+    % time = toc;
 
     mc_results(run).ACT_Quaternion = q0;
     mc_results(run).EST_Quaternion = q0_known;

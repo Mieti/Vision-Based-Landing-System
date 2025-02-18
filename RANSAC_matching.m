@@ -7,11 +7,11 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
     % read camera shot crater list and triangle algorithm on shot image
     camera_craters = table2array(readtable("CameraShotSim.csv"));
 
-    k = 5;
-    m = 4;
+    k = 7;
+    m = 5;
     threshold = 0.7;
     nbins = 4;
-    threshold_cost = 5e6;
+    threshold_cost = 1e6;
     mean_translation = [0,0];
     distance = 0;
     direction = 0;
