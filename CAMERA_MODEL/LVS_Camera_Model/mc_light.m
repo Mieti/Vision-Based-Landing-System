@@ -29,7 +29,7 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 100;
+nrun = 5;
 
 mc_results = struct('ACT_Quaternion', [], ...
                     'EST_Quaternion', [], ...
@@ -56,7 +56,7 @@ for run=1:nrun
     RotNomX0= (Rot0/180*pi)*cos(AngRot0);  
     RotNomY0= (Rot0/180*pi)*sin(AngRot0);
     RotNomZ0=2*pi*(INIT_rand_values(2,run)-0.5); % ±180 (2*pi)
-    disp(rad2deg(RotNomZ0));
+    %disp(rad2deg(RotNomZ0));
     MatNom(1,1)=cos(RotNomY0)*cos(RotNomZ0);
     MatNom(1,2)=cos(RotNomY0)*sin(RotNomZ0);
     MatNom(1,3)=-sin(RotNomY0);
@@ -227,7 +227,7 @@ for run=1:nrun
     tic 
         [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
     time = toc;
-    % 
+
     % tic
     %     [translation, distance, direction] = RANSAC_matching(run);
     % time = toc;

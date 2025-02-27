@@ -163,10 +163,13 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             v1 = [result(i,7), result(i,8)];
             v1_crater = [result(i,9) result(i,10)];
             phi = acos(dot(v1,v1_crater)/(norm(v1)*norm(v1_crater)));
+            dot_angle = dot(v1, v1_crater);
+            cross_angle = v1(1)*v1_crater(2) - v1(2)*v1_crater(1);
+            dir_angle = rad2deg(atan2(cross_angle, dot_angle));
             R = [cos(phi) sin(phi); -sin(phi) cos(phi)];
             
             t = ct - s*R*cs;
-            disp(R);
+            %disp(R);
             cs_prime = zeros(height(result),2);
     
             for j=1:height(result)
@@ -236,6 +239,7 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
                     t_final = t;
                     R_final = R;
                     phi_final = phi;
+                    angle_final = dir_angle;
                     s_final = s;
                     total_cost = cost;
                     cs_final = result;
@@ -256,7 +260,8 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
                 mean_translation = [inliers_final(:,1)-inliers_target(:,1), inliers_final(:,2)-inliers_target(:,2)];
             end
             distance = norm(mean_translation);
-            direction = phi_final;%atan2d(mean_translation(2), mean_translation(1));
+            %direction = phi_final;%atan2d(mean_translation(2), mean_translation(1));
+            direction = angle_final;
 
             % figure(3*run-1);
             % title('Fine Matches');

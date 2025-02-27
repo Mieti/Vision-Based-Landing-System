@@ -1,4 +1,4 @@
-function [centroid_mean_filtered, distance, direction] = ETSM_matching(run, Rand_x, Rand_y)
+function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, Rand_y)
 
     % read full crater list map and triangles map
     craters = readtable("CraterMapRadius.csv");
@@ -171,6 +171,7 @@ function [centroid_mean_filtered, distance, direction] = ETSM_matching(run, Rand
             centroid_mean_filtered = mean(centroid_dist_filtered);
             % distance = norm(mean([result_filtered(:,9),result_filtered(:,10)]-([result_filtered(:,11), result_filtered(:,12)]+centroid_mean_filtered)));
             distance = mean(vecnorm(ct(:,:)-(cs(:,:)+centroid_mean_filtered),2,2));
+            translation_final = mean((cs(:,:)+centroid_mean_filtered) - ct(:,:));
             direction = rad2deg(-phi);
         end
         %fare media e comporre il vettore traslazione
