@@ -1,4 +1,4 @@
-function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, Rand_y)
+function [distance, direction, inliers, PosX, PosY, pos_diff, reliability] = ETSM_matching(run, Rand_x, Rand_y)
 
     % read full crater list map and triangles map
     craters = readtable("CraterMapRadius.csv");
@@ -17,7 +17,10 @@ function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, R
     match = 0;
     tol = 1e-4;
     res_counter = 1;
+    reliability = 0;
+    rel_threshold = 100;
 
+    distance = 9e6; direction = 9e6; inliers = 0; pos_diff = 9e6; PosX = 9e6; PosY = 9e6;
     % 2 nested loops to compare 2 triangles
     for i=1:height(camera_triangles)
         % if match
@@ -142,18 +145,26 @@ function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, R
 
 
         end
-        [cs_unique, ia, ic] = unique(cs, 'rows', 'stable');
         % rotation_angle(:,1) = atan2(cs(:,1).*ct(:,2) - cs(:,2).*ct(:,1), cs(:,1).*ct(:,1) + cs(:,2).*ct(:,2));
         rotation_angle = -angle_rad;
         rotation_mean = mean(rotation_angle);
         rotation_std = std(rotation_angle);
         rotation_filtered = rotation_angle(abs(rotation_angle(:,1)-rotation_mean) <= 3*rotation_std, :);
         phi = mean(rotation_filtered);
-        disp(rad2deg(phi));
+        %disp(rad2deg(phi));
         R_mat = [cos(phi), sin(phi); -sin(phi), cos(phi)];
         cs = (R_mat*cs')';
         result_final(:,11) = cs(:,1);
         result_final(:,12) = cs(:,2);
+        distance = mean(ct-cs);
+        direction = rad2deg(-phi);
+        inliers = res_counter;
+        origin = (R_mat*[0 0]'+distance')';
+        origin_diff = vecnorm([Rand_x Rand_y]-(R_mat*[0 0]'+distance')');
+        PosX = origin(1);
+        PosY = origin(2);
+        pos_diff = origin_diff;
+        result_filtered = result_final;
         if res_counter >= 5
             centroid_dist = [result_final(:,9)-result_final(:,11), result_final(:,10)-result_final(:,12)];
             centroid_mean = mean(centroid_dist);
@@ -163,16 +174,36 @@ function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, R
             centroid_dist = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
             centroid_mean = mean(centroid_dist);
             centroid_std = std(centroid_dist);
+            result_restricted = result_filtered(abs(centroid_dist(:,1)-centroid_mean(1)) <= 2*centroid_std(1) & abs(centroid_dist(:,2)-centroid_mean(2)) <= 2*centroid_std(2), :);
             result_filtered = result_filtered(abs(centroid_dist(:,1)-centroid_mean(1)) <= 3*centroid_std(1) & abs(centroid_dist(:,2)-centroid_mean(2)) <= 3*centroid_std(2), :);
             cs = [result_filtered(:,11), result_filtered(:, 12)];
             ct = [result_filtered(:,9), result_filtered(:, 10)];
             
             centroid_dist_filtered = [result_filtered(:,9)-result_filtered(:,11), result_filtered(:,10)-result_filtered(:,12)];
+            centroid_dist_restricted = [result_restricted(:,9)-result_restricted(:,11), result_restricted(:,10)-result_restricted(:,12)];
+            % figure(3*run-1);
+            % hold on;
+            % plot(global_centroid(1), global_centroid(2), '-o', 'LineWidth', 1, 'Color', 'g');
+            % plot(local_centroid(1), local_centroid(2), '-o', 'LineWidth', 1, 'Color', 'cyan');
+            % plot(0, 0, '-o', 'LineWidth', 1, 'Color', 'black');
             centroid_mean_filtered = mean(centroid_dist_filtered);
+            centroid_mean_restricted = mean(centroid_dist_restricted);
             % distance = norm(mean([result_filtered(:,9),result_filtered(:,10)]-([result_filtered(:,11), result_filtered(:,12)]+centroid_mean_filtered)));
             distance = mean(vecnorm(ct(:,:)-(cs(:,:)+centroid_mean_filtered),2,2));
-            translation_final = mean((cs(:,:)+centroid_mean_filtered) - ct(:,:));
             direction = rad2deg(-phi);
+            inliers = height(centroid_dist_filtered);
+            %origin_diff = vecnorm([Rand_x, Rand_y]-([0 0]+centroid_mean_filtered));
+            % origin_diff = T;
+            origin = (R_mat*[0 0]'+centroid_mean_filtered')';
+            origin_diff = vecnorm([Rand_x Rand_y]-(R_mat*[0 0]'+centroid_mean_filtered')');
+            origin_restricted = vecnorm([Rand_x Rand_y]-(R_mat*[0 0]'+centroid_mean_restricted')');
+            if abs(origin_restricted - origin_diff) < rel_threshold
+                reliability = 1;
+            end
+            PosX = origin(1);
+            PosY = origin(2);
+            pos_diff = origin_diff;
+            % plot(point(1), point(2), '-o', 'LineWidth', 1, 'Color', 'black');
         end
         %fare media e comporre il vettore traslazione
         % data = result_final;
@@ -185,11 +216,11 @@ function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, R
         % xA2 = map(:, 1); yA2 = map(:, 2);
         % xB2 = map(:, 4); yB2 = map(:, 5);
         % xC2 = map(:, 7); yC2 = map(:, 8);
-        % 
-        % % Number of triangles
+
+        % Number of triangles
         % numTriangles = size(data, 1);
         % numTriangles2 = size(map, 1);
-        % % Plot triangles
+        % Plot triangles
         % cmap = lines(numTriangles);
         % figure(3*run-1);
         % hold on; % Retain plots for multiple triangles
@@ -214,6 +245,9 @@ function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, R
         % 
         %     % Plot the triangle
         %     plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');
+        %     % plot(Rand_x, Rand_y, '-o', 'LineWidth', 1, 'Color', 'g');
+        %     % plot(0, 0, '-o', 'LineWidth', 1, 'Color', 'g');
+        %     % plot(0+centroid_mean_filtered(1), 0+centroid_mean_filtered(2), '-o', 'LineWidth', 1, 'Color', 'y');
         % end
         % 
         % hold off;
@@ -223,26 +257,28 @@ function [translation_final, distance, direction] = ETSM_matching(run, Rand_x, R
         % axis equal; % Equal scaling for x and y axes
         % title('Matches After outliers filter');
         % xlabel('X'); ylabel('Y');
-        % 
+
         % data = result_filtered;
         % for i = 1:height(result_filtered)
         %     map_index = data(i, 6);
         %     vA = R_mat*[data(i, 1),data(i, 2)]'+centroid_mean_filtered';
         %     vB = R_mat*[data(i, 4),data(i, 5)]'+centroid_mean_filtered';
         %     vC = R_mat*[data(i, 7),data(i, 8)]'+centroid_mean_filtered';
-        %     % xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
-        %     % xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
-        %     % xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
-        %     % Get vertices of the current triangle
-        %     % xCoords = [xA, xB, xC, xA]; % Close the triangle
-        %     % yCoords = [yA, yB, yC, yA];
-        %     xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
-        %     yCoords = [vA(2), vB(2), vC(2), vA(2)];
-        %     xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
-        %     yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
-        %     % Plot the triangle
-        %     plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
-        %     plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');        
+            % xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
+            % xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
+            % xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
+            % Get vertices of the current triangle
+            % xCoords = [xA, xB, xC, xA]; % Close the triangle
+            % yCoords = [yA, yB, yC, yA];
+            % prova(i,[3 4]) = [xB2(map_index) yB2(map_index)] - vB';
+            % prova(i,[5 6]) = [xC2(map_index) yC2(map_index)] - vC';
+            % xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
+            % yCoords = [vA(2), vB(2), vC(2), vA(2)];
+            % xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+            % yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+            % Plot the triangle
+            % plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
+            % plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');        
         % end
-    end
+    % end
 end

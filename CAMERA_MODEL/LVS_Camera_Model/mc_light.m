@@ -29,18 +29,39 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 5;
+nrun = 100;
 
-mc_results = struct('ACT_Quaternion', [], ...
-                    'EST_Quaternion', [], ...
+% mc_results = struct('ACT_Quaternion', [], ...
+%                     'EST_Quaternion', [], ...
+%                     'ACT_PosX', [], ...
+%                     'ACT_PosY', [], ...
+%                     'ACT_PosZ', [], ...
+%                     'Translation', [], ...
+%                     'Distance_err', [], ...
+%                     'Direction_err', [], ...
+%                     'Time', [], ...
+%                     'Precision', []);
+
+mc_results = struct('Rot_act_X', [], ...
+                    'Rot_act_Y', [], ...
+                    'Rot_act_Z', [], ...
+                    'Rot_est_X', [], ...
+                    'Rot_est_Y', [], ...
+                    'Rot_est_Z', [], ...
                     'ACT_PosX', [], ...
                     'ACT_PosY', [], ...
                     'ACT_PosZ', [], ...
-                    'Translation', [], ...
                     'Distance_err', [], ...
-                    'Direction_err', [], ...
+                    'Direction_err', [], ... 
+                    'Cost', [], ... 
+                    'Inliers', [], ...
                     'Time', [], ...
-                    'Precision', []);
+                    'EST_PosX', [], ...
+                    'EST_PosY', [], ...
+                    'EST_dist', [], ...
+                    'Reliability', []);
+                    %'Monitor', []);
+                    % 'Precision', []);
 
 for run=1:nrun
     %% MC VARIABLES
@@ -49,13 +70,16 @@ for run=1:nrun
         randn('state',2845334);INIT_randn_values=randn(7,nrun);
     end
 
+    % if run == 56
+    %     disp('here');
+    % end
     MURot0=0;
     SIGMARot0=5/3; 
     Rot0 =(MURot0+SIGMARot0*INIT_randn_values(1,run));
     AngRot0=2*pi*(INIT_rand_values(1,run)-0.5);
     RotNomX0= (Rot0/180*pi)*cos(AngRot0);  
     RotNomY0= (Rot0/180*pi)*sin(AngRot0);
-    RotNomZ0=2*pi*(INIT_rand_values(2,run)-0.5); % ±180 (2*pi)
+    RotNomZ0= 2*pi*(INIT_rand_values(2,run)-0.5); % ±180 (2*pi)
     %disp(rad2deg(RotNomZ0));
     MatNom(1,1)=cos(RotNomY0)*cos(RotNomZ0);
     MatNom(1,2)=cos(RotNomY0)*sin(RotNomZ0);
@@ -98,6 +122,10 @@ for run=1:nrun
     q0(2)=q20;    
     q0(3)=q30;
     q0(4)=q40;
+    
+    % for quat_i=1:101
+    %     ACT_Quaternion.Data(quat_i,1:4) = q0(1,:);
+    % end
     ACT_Quaternion.Data(1,1:4) = q0(1,:);
 
     MURotBiasX=0;
@@ -155,8 +183,12 @@ for run=1:nrun
     q0_known(2)=Knownq20;    
     q0_known(3)=Knownq30;
     q0_known(4)=Knownq40;
-    EST_Quaternion.Data(1,1:4) = q0(1,:);
 
+    % for quat_i=1:101
+    %     EST_Quaternion.Data(quat_i,1:4) = q0_known(1,:);
+    % end
+    EST_Quaternion.Data(101,1:4) = q0_known(1,:);
+    
     Rand_z = 4100+130*(INIT_rand_values(5,run)-0.5);
     ACT_PosZ.signals.values(1:1) = Rand_z;
 
@@ -185,7 +217,7 @@ for run=1:nrun
     num_landmarks_cat=length(Cat.clandmarkX);
 
     % figure(3*run-2); %Simulation Init
-    % 
+
     % for k=1:num_landmarks_cat
     %     CatX(k)=Cat.clandmarkX(k);
     %     CatY(k)=Cat.clandmarkY(k);
@@ -193,10 +225,22 @@ for run=1:nrun
     %     theta = linspace(0,2*pi);
     %     Catx = Catr(k)*cos(theta) + CatX(k);
     %     Caty = Catr(k)*sin(theta) + CatY(k);
-    %     plot(Catx,Caty,'b')
+    %     % if (k == 100)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 200)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 300)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 400)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 500)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % else
+    %         plot(Catx,Caty,'b')
+    %     % end
     %     hold on;
     % end
-    
+
     num_landmarks_found=0;
     for j=1:100
       GroundX(j)=0;
@@ -211,8 +255,8 @@ for run=1:nrun
         CamY(i)=landmarks_ground(2,i*2);
         Camr(i)=landmarks_ground(2,199+i*3);
         theta = linspace(0,2*pi);
-        Camx = Camr(i)*cos(theta) + CamX(i);
-        Camy = Camr(i)*sin(theta) + CamY(i); 
+        % Camx = Camr(i)*cos(theta) + CamX(i);
+        % Camy = Camr(i)*sin(theta) + CamY(i); 
         % plot(Camx,Camy,'r')
         % hold on;
     end
@@ -225,23 +269,35 @@ for run=1:nrun
     writetable(struct2table(cameraShot), outputPath);
 
     tic 
-        [translation, distance, direction] = ETSM_matching(run, Rand_x, Rand_y);
+        [distance, direction, inliers_tot, PosX, PosY, pos_diff, reliability] = ETSM_matching(run, Rand_x, Rand_y);
     time = toc;
 
     % tic
-    %     [translation, distance, direction] = RANSAC_matching(run);
+    %     [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
     % time = toc;
 
-    mc_results(run).ACT_Quaternion = q0;
-    mc_results(run).EST_Quaternion = q0_known;
+    % mc_results(run).ACT_Quaternion = q0;
+    % mc_results(run).EST_Quaternion = q0_known;
     mc_results(run).ACT_PosX = Rand_x;
     mc_results(run).ACT_PosY = Rand_y;
     mc_results(run).ACT_PosZ = Rand_z;
-    mc_results(run).Translation = translation;
+    mc_results(run).Rot_act_X = rad2deg(RotNomX0);
+    mc_results(run).Rot_act_Y = rad2deg(RotNomY0);
+    mc_results(run).Rot_act_Z = rad2deg(RotNomZ0);
+    mc_results(run).Rot_est_X = rad2deg(RotX0);
+    mc_results(run).Rot_est_Y = rad2deg(RotY0);
+    mc_results(run).Rot_est_Z = rad2deg(RotZ0);
     mc_results(run).Distance_err = distance;
     mc_results(run).Direction_err = abs(direction-rad2deg(RotNomZ0));
     % mc_results(run).Distance_err = norm(translation);
+    % mc_results(run).Cost = total_cost;
+    mc_results(run).Inliers = inliers_tot;
     mc_results(run).Time = time;
+    mc_results(run).EST_PosX = PosX;
+    mc_results(run).EST_PosY = PosY;
+    mc_results(run).EST_dist = pos_diff;
+    mc_results(run).Reliability = reliability;
+    % mc_results(run).Monitor = monitor;
     % mc_results(run).Precision = precision;
 end
 mc_results = struct2table(mc_results);

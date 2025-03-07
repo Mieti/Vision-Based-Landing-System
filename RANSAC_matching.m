@@ -1,4 +1,4 @@
-function [mean_translation, distance, direction] = RANSAC_matching(run)
+function [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y)
 
     % read full crater list map and triangles map
     craters = table2array(readtable("CraterMapRadius.csv"));
@@ -11,10 +11,16 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
     m = 5;
     threshold = 0.7;
     nbins = 4;
-    threshold_cost = 1e6;
+    threshold_cost = 5e4;
+    rel_threshold = 1e4;
     mean_translation = [0,0];
-    distance = 0;
-    direction = 0;
+    distance = 9e6;
+    direction = 9e6;
+    inliers_tot = 0;
+    PosX = 9e6;
+    PosY = 9e6;
+    pos_diff = 9e6;
+    reliability = 0;
     % create histogram for each camera crater
     for i=1:height(camera_craters)
         center = camera_craters(i, 1:2);
@@ -128,15 +134,15 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             if size(Ht{j},1) == 0
                 continue
             end
-            sum = 0;
+            sumH = 0;
             for o=1:4
                 for p=1:4
                     for q=1:4
-                        sum = sum + (Hs{i}(o,p,q) - Ht{j}(o,p,q))^2;
+                        sumH = sumH + (Hs{i}(o,p,q) - Ht{j}(o,p,q))^2;
                     end
                 end
             end
-            diff = sqrt(sum);
+            diff = sqrt(sumH);
             if diff < threshold
                 result(diff_counter+1,1) = camera_craters(i,1);
                 result(diff_counter+1,2) = camera_craters(i,2);
@@ -153,7 +159,7 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             end
         end
     end
-    
+   
     total_cost = intmax;
     if height(result) >= 4
         for i=1:height(result)
@@ -230,7 +236,7 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
                         inliers(inlier_index, 2) = ys_second;
                         inliers(inlier_index, 3) = result(j,3);
                         inliers(inlier_index, 4) = j;
-                        inliers(inlier_index, 5) = cost;
+                        inliers(inlier_index, 5) = singular_cost;
                         inlier_index = inlier_index+1;
                     end
                 end
@@ -241,12 +247,38 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
                     phi_final = phi;
                     angle_final = dir_angle;
                     s_final = s;
-                    total_cost = cost;
                     cs_final = result;
                     cs_prime_final = cs_prime;
                     h_final = h;
+                    %monitor = h_final(1)+h_final(5)+1;
                     h2_final = h2;
                     inliers_final = inliers;
+                    inliers_tot = height(inliers_final);
+                    if inliers_tot > 0
+                        total_cost = sum(inliers_final(:,5));
+                    else
+                        total_cost = cost;
+                    end
+                        % inlier_index = 1;
+                    % inliers = [];
+                    % for i_inl=1:height(cs_prime)
+                    %     x_prime = cs_prime(i_inl,1);
+                    %     y_prime = cs_prime(i_inl,2);
+                    %     x_t = result(j,4);
+                    %     y_t = result(j,5);
+                    %     xs_second_final = (h_final(1)*x_prime + h_final(2)*y_prime + h_final(3))/(h2(7)*x_prime + h_final(8)*y_prime + 1);
+                    %     ys_second_final = (h_final(4)*x_prime + h_final(5)*y_prime + h_final(6))/(h2(7)*x_prime + h_final(8)*y_prime + 1);
+                    %     singular_cost = ((x_t - xs_second_final)^2 + (y_t - ys_second_final)^2);
+                    %     if 
+                    %     inliers(inlier_index, 1) = xs_second_final;
+                    %     inliers(inlier_index, 2) = ys_second_final;
+                    %     inliers(inlier_index, 3) = result(i_inl,3);
+                    %     inliers(inlier_index, 4) = i_inl;
+                    %     inliers(inlier_index, 5) = cost;
+                    %     inlier_index = inlier_index+1;
+                    % end
+                    % inliers_final = inliers;
+                    % inliers_tot = height(inliers);
                 end
             end
         end
@@ -262,15 +294,26 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             distance = norm(mean_translation);
             %direction = phi_final;%atan2d(mean_translation(2), mean_translation(1));
             direction = angle_final;
-
-            % figure(3*run-1);
+            origin_p = s_final*R_final*[0 0]' + t_final;
+            origin = [((h_final(1)*origin_p(1) + h_final(2)*origin_p(2) + h_final(3))/(h_final(7)*origin_p(1) + h_final(8)*origin_p(2) + 1)), ((h_final(4)*origin_p(1) + h_final(5)*origin_p(2) + h_final(6))/(h_final(7)*origin_p(1) + h_final(8)*origin_p(2) + 1))];
+            origin_diff = vecnorm([Rand_x Rand_y] - origin);
+            PosX = origin(1);
+            PosY = origin(2);
+            pos_diff = origin_diff;
+            if total_cost < rel_threshold
+                reliability = 1;
+            end
+            % if pos_diff > 1e5
+            %     disp(here);
+            % end
+            % figure(3*run);
             % title('Fine Matches');
             % xlabel('X'); ylabel('Y');
             % hold on;
             % theta = linspace(0,2*pi);
             % colors = lines(height(result));
             % inliers_colors = lines(height(inliers_final));
-            
+            % 
             % for i=1:height(inliers_final)
             %     % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
             %     % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
@@ -282,8 +325,8 @@ function [mean_translation, distance, direction] = RANSAC_matching(run)
             %     plot(x2,y2,'Color', 'b');
             % end
             % hold off
-        
-            % figure(3*run);
+            % 
+            % figure(3*run-1);
             % title('Histogram Matches');
             % xlabel('X'); ylabel('Y');
             % hold on
