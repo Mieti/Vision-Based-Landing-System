@@ -1,4 +1,4 @@
-function [distance, direction, inliers, PosX, PosY, pos_diff, reliability] = ETSM_matching(run, Rand_x, Rand_y)
+function [distance, direction, inliers, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s] = ETSM_matching(run, Rand_x, Rand_y)
 
     % read full crater list map and triangles map
     craters = readtable("CraterMapRadius.csv");
@@ -19,7 +19,8 @@ function [distance, direction, inliers, PosX, PosY, pos_diff, reliability] = ETS
     res_counter = 1;
     reliability = 0;
     rel_threshold = 100;
-
+    origin_3s = 0;
+    origin_2s = 0;
     distance = 9e6; direction = 9e6; inliers = 0; pos_diff = 9e6; PosX = 9e6; PosY = 9e6;
     % 2 nested loops to compare 2 triangles
     for i=1:height(camera_triangles)
@@ -165,7 +166,7 @@ function [distance, direction, inliers, PosX, PosY, pos_diff, reliability] = ETS
         PosY = origin(2);
         pos_diff = origin_diff;
         result_filtered = result_final;
-        if res_counter >= 5
+        % if res_counter >= 5
             centroid_dist = [result_final(:,9)-result_final(:,11), result_final(:,10)-result_final(:,12)];
             centroid_mean = mean(centroid_dist);
             centroid_std = std(centroid_dist);
@@ -203,121 +204,93 @@ function [distance, direction, inliers, PosX, PosY, pos_diff, reliability] = ETS
             PosX = origin(1);
             PosY = origin(2);
             pos_diff = origin_diff;
-            % plot(point(1), point(2), '-o', 'LineWidth', 1, 'Color', 'black');
-
-
-
-
-% Define two normal distributions (mean and standard deviation)
-mu1 = centroid_mean_restricted;  sigma1 = 2;
-mu2 = centroid_mean_filtered;  sigma2 = 3;
-
-% Compute the probability density functions (PDFs)
-pdf1 = normpdf(centroid_dist(:,1), mu1, sigma1);
-pdf2 = normpdf(x, mu2, sigma2);
-
-% Plot both distributions
-figure;
-plot(x, pdf1,'LineWidth', 1.5); hold on;  % Blue solid line for first
-plot(x, pdf2, 'r--', 'LineWidth', 1.5);          % Red dashed line for second
-hold off;
-
-% Add labels, title, and legend
-xlabel('Value');
-ylabel('Probability Density');
-title('Comparison of Two Normal Distributions');
-legend('Distribution 1 (Blue, \mu=0, \sigma=2)', 'Distribution 2 (Red, \mu=8, \sigma=3)', 'Location', 'northeast');
-grid on;
-
-
-
-
-
-
-        end
+            origin_3s = (R_mat*[0 0]'+centroid_mean_filtered')';
+            origin_2s =(R_mat*[0 0]'+centroid_mean_restricted')';
+            % plot(point(1), point(2), '-o', 'LineWidth', 1, 'Color', 'black')
+        % end
         %fare media e comporre il vettore traslazione
-        data = result_final;
-        map = readmatrix("Triangles_with_angles.csv");
-
-        xA = data(:, 1); yA = data(:, 2);
-        xB = data(:, 4); yB = data(:, 5);
-        xC = data(:, 7); yC = data(:, 8);
-
-        xA2 = map(:, 1); yA2 = map(:, 2);
-        xB2 = map(:, 4); yB2 = map(:, 5);
-        xC2 = map(:, 7); yC2 = map(:, 8);
-
-        % Number of triangles
-        numTriangles = size(data, 1);
-        numTriangles2 = size(map, 1);
-        % Plot triangles
-        cmap = lines(numTriangles);
-        figure(3*run-1);
-        set(gcf, 'Renderer', 'painters');
-        set(gcf, 'Renderer', 'opengl');
-        hold on; % Retain plots for multiple triangles
-        axis equal; % Equal scaling for x and y axes
-        title('Coarse Matches');
-        xlabel('X'); ylabel('Y');
-        h1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
-        h2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
-
-        for i = 1:numTriangles
-            % Get vertices of the current triangle
-            xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
-            yCoords = [yA(i), yB(i), yC(i), yA(i)];
-
-            % Plot the triangle
-            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
-        end
-
-        for i = 1:numTriangles
-            map_index = data(i, 6);
-            % Get vertices of the current triangle
-            xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
-            yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
-
-            % Plot the triangle
-            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');
-            % plot(Rand_x, Rand_y, '-o', 'LineWidth', 1, 'Color', 'g');
-            % plot(0, 0, '-o', 'LineWidth', 1, 'Color', 'g');
-            % plot(0+centroid_mean_filtered(1), 0+centroid_mean_filtered(2), '-o', 'LineWidth', 1, 'Color', 'y');
-        end
-        legend([h1, h2], {'Target Triangles', 'Source Triangles'}, 'Location', 'southoutside');
-        hold off;
-
-        figure(3*run);
-        set(gcf, 'Renderer', 'painters');
-        set(gcf, 'Renderer', 'opengl');
-        hold on; % Retain plots for multiple triangles
-        axis equal; % Equal scaling for x and y axes
-        title('Matches After outliers filter');
-        xlabel('X'); ylabel('Y');
-        h1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
-        h2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
-        data = result_filtered;
-        for i = 1:height(result_filtered)
-            map_index = data(i, 6);
-            vA = R_mat*[data(i, 1),data(i, 2)]'+centroid_mean_filtered';
-            vB = R_mat*[data(i, 4),data(i, 5)]'+centroid_mean_filtered';
-            vC = R_mat*[data(i, 7),data(i, 8)]'+centroid_mean_filtered';
-            xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
-            xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
-            xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
-            % Get vertices of the current triangle
-            xCoords = [xA, xB, xC, xA]; % Close the triangle
-            yCoords = [yA, yB, yC, yA];
-            prova(i,[3 4]) = [xB2(map_index) yB2(map_index)] - vB';
-            prova(i,[5 6]) = [xC2(map_index) yC2(map_index)] - vC';
-            xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
-            yCoords = [vA(2), vB(2), vC(2), vA(2)];
-            xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
-            yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
-            % Plot the triangle
-            plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
-            plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b'); 
-        end
-        legend([h1, h2], {'Target Triangles', 'Source Triangles'}, 'Location', 'southoutside');
-        hold off;
+        % data = result_final;
+        % map = readmatrix("Triangles_with_angles.csv");
+        % 
+        % xA = data(:, 1); yA = data(:, 2);
+        % xB = data(:, 4); yB = data(:, 5);
+        % xC = data(:, 7); yC = data(:, 8);
+        % 
+        % xA2 = map(:, 1); yA2 = map(:, 2);
+        % xB2 = map(:, 4); yB2 = map(:, 5);
+        % xC2 = map(:, 7); yC2 = map(:, 8);
+        % 
+        % % Number of triangles
+        % numTriangles = size(data, 1);
+        % numTriangles2 = size(map, 1);
+        % % Plot triangles
+        % cmap = lines(numTriangles);
+        % figure(3*run-1);
+        % set(gcf, 'Renderer', 'painters');
+        % set(gcf, 'Renderer', 'opengl');
+        % hold on; % Retain plots for multiple triangles
+        % axis equal; % Equal scaling for x and y axes
+        % title('Coarse Matches');
+        % xlabel('X'); ylabel('Y');
+        % h1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
+        % h2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
+        % 
+        % for i = 1:numTriangles
+        %     % Get vertices of the current triangle
+        %     xCoords = [xA(i), xB(i), xC(i), xA(i)]; % Close the triangle
+        %     yCoords = [yA(i), yB(i), yC(i), yA(i)];
+        % 
+        %     % Plot the triangle
+        %     plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
+        % end
+        % 
+        % for i = 1:numTriangles
+        %     map_index = data(i, 6);
+        %     % Get vertices of the current triangle
+        %     xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+        %     yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+        % 
+        %     % Plot the triangle
+        %     plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b');
+        %     % plot(Rand_x, Rand_y, '-o', 'LineWidth', 1, 'Color', 'g');
+        %     % plot(0, 0, '-o', 'LineWidth', 1, 'Color', 'g');
+        %     % plot(0+centroid_mean_filtered(1), 0+centroid_mean_filtered(2), '-o', 'LineWidth', 1, 'Color', 'y');
+        % end
+        % legend([h1, h2], {'Target Triangles', 'Source Triangles'}, 'Location', 'southoutside');
+        % hold off;
+        % 
+        % figure(3*run);
+        % set(gcf, 'Renderer', 'painters');
+        % set(gcf, 'Renderer', 'opengl');
+        % hold on; % Retain plots for multiple triangles
+        % axis equal; % Equal scaling for x and y axes
+        % title('Matches After outliers filter');
+        % xlabel('X'); ylabel('Y');
+        % h1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
+        % h2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
+        % data = result_filtered;
+        % for i = 1:height(result_filtered)
+        %     map_index = data(i, 6);
+        %     vA = R_mat*[data(i, 1),data(i, 2)]'+centroid_mean_filtered';
+        %     vB = R_mat*[data(i, 4),data(i, 5)]'+centroid_mean_filtered';
+        %     vC = R_mat*[data(i, 7),data(i, 8)]'+centroid_mean_filtered';
+        %     xA = data(i, 1)+centroid_mean_filtered(1); yA = data(i, 2)+centroid_mean_filtered(2);
+        %     xB = data(i, 4)+centroid_mean_filtered(1); yB = data(i, 5)+centroid_mean_filtered(2);
+        %     xC = data(i, 7)+centroid_mean_filtered(1); yC = data(i, 8)+centroid_mean_filtered(2);
+        %     % Get vertices of the current triangle
+        %     xCoords = [xA, xB, xC, xA]; % Close the triangle
+        %     yCoords = [yA, yB, yC, yA];
+        %     prova(i,[3 4]) = [xB2(map_index) yB2(map_index)] - vB';
+        %     prova(i,[5 6]) = [xC2(map_index) yC2(map_index)] - vC';
+        %     xCoords = [vA(1), vB(1), vC(1), vA(1)]; % Close the triangle
+        %     yCoords = [vA(2), vB(2), vC(2), vA(2)];
+        %     xCoords2 = [xA2(map_index), xB2(map_index), xC2(map_index), xA2(map_index)]; % Close the triangle
+        %     yCoords2 = [yA2(map_index), yB2(map_index), yC2(map_index), yA2(map_index)];
+        %     % Plot the triangle
+        %     plot(xCoords, yCoords, '-o', 'LineWidth', 1, 'Color', 'r');
+        %     plot(xCoords2, yCoords2, '-o', 'LineWidth', 1, 'Color', 'b'); 
+        % end
+        % legend([h1, h2], {'Target Triangles', 'Source Triangles'}, 'Location', 'southoutside');
+        % hold off;
     end
 end

@@ -29,7 +29,7 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 30;
+nrun = 100;
 
 % mc_results = struct('ACT_Quaternion', [], ...
 %                     'EST_Quaternion', [], ...
@@ -63,9 +63,9 @@ mc_results = struct('Rot_act_X', [], ...
                     %'Monitor', []);
                     % 'Precision', []);
 
-for run=1:nrun
+for run=99:nrun
     %% MC VARIABLES
-    if run == 1
+    if run == 99
         rand('state',5938437);INIT_rand_values=rand(7,nrun);
         randn('state',2845334);INIT_randn_values=randn(7,nrun);
     end
@@ -215,30 +215,30 @@ for run=1:nrun
 
     num_landmarks_cat=length(Cat.clandmarkX);
 
-    figure(3*run-2); %Simulation Init
+    % figure(3*run-2); %Simulation Init
 
-    for k=1:num_landmarks_cat
-        CatX(k)=Cat.clandmarkX(k);
-        CatY(k)=Cat.clandmarkY(k);
-        Catr(k)=Cat.rlandmark(k);
-        theta = linspace(0,2*pi);
-        Catx = Catr(k)*cos(theta) + CatX(k);
-        Caty = Catr(k)*sin(theta) + CatY(k);
-        % if (k == 100)
-        %     plot(Catx,Caty,'g', 'LineWidth', 3);
-        % elseif (k == 200)
-        %     plot(Catx,Caty,'g', 'LineWidth', 3);
-        % elseif (k == 300)
-        %     plot(Catx,Caty,'g', 'LineWidth', 3);
-        % elseif (k == 400)
-        %     plot(Catx,Caty,'g', 'LineWidth', 3);
-        % elseif (k == 500)
-        %     plot(Catx,Caty,'g', 'LineWidth', 3);
-        % else
-            plot(Catx,Caty,'b')
-        % end
-        hold on;
-    end
+    % for k=1:num_landmarks_cat
+    %     CatX(k)=Cat.clandmarkX(k);
+    %     CatY(k)=Cat.clandmarkY(k);
+    %     Catr(k)=Cat.rlandmark(k);
+    %     theta = linspace(0,2*pi);
+    %     Catx = Catr(k)*cos(theta) + CatX(k);
+    %     Caty = Catr(k)*sin(theta) + CatY(k);
+    %     % if (k == 100)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 200)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 300)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 400)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % elseif (k == 500)
+    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
+    %     % else
+    %         plot(Catx,Caty,'b')
+    %     % end
+    %     hold on;
+    % end
 
     num_landmarks_found=0;
     for j=1:100
@@ -254,10 +254,10 @@ for run=1:nrun
         CamY(i)=landmarks_ground(2,i*2);
         Camr(i)=landmarks_ground(2,199+i*3);
         theta = linspace(0,2*pi);
-        Camx = Camr(i)*cos(theta) + CamX(i);
-        Camy = Camr(i)*sin(theta) + CamY(i); 
-        plot(Camx,Camy,'r')
-        hold on;
+        % Camx = Camr(i)*cos(theta) + CamX(i);
+        % Camy = Camr(i)*sin(theta) + CamY(i); 
+        % plot(Camx,Camy,'r')
+        % hold on;
     end
     % create catalogue for matching algorithm
     cameraShot.PosX = CamX';
@@ -267,13 +267,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    % tic 
-    %     [distance, direction, inliers_tot, PosX, PosY, pos_diff, reliability] = ETSM_matching(run, Rand_x, Rand_y);
-    % time = toc;
-
-    tic
-        [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
+    tic 
+        [distance, direction, inliers_tot, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s] = ETSM_matching(run, Rand_x, Rand_y);
     time = toc;
+
+    % tic
+    %     [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
+    % time = toc;
 
     % mc_results(run).ACT_Quaternion = q0;
     % mc_results(run).EST_Quaternion = q0_known;
@@ -296,6 +296,8 @@ for run=1:nrun
     mc_results(run).EST_PosY = PosY;
     mc_results(run).EST_dist = pos_diff;
     mc_results(run).Reliability = reliability;
+    mc_results(run).Origin3s = origin_3s;
+    mc_results(run).Origin2s = origin_2s;
     % mc_results(run).Monitor = monitor;
     % mc_results(run).Precision = precision;
 end
