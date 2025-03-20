@@ -280,7 +280,10 @@ function [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, re
                     % inliers_final = inliers;
                     % inliers_tot = height(inliers);
                 end
+                cost_track(i*4-4+rand_i,1) = i*4-4+rand_i;
+                cost_track(i*4-4+rand_i,2) = total_cost;
             end
+            
         end
 
         if size(inliers_final) > 0
@@ -306,40 +309,60 @@ function [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, re
             % if pos_diff > 1e5
             %     disp(here);
             % end
-            % figure(3*run);
-            % title('Fine Matches');
+            figure(3*run);
+            set(gcf, 'Renderer', 'painters');
+            set(gcf, 'Renderer', 'opengl');
+            title('Fine Matches');
+            xlabel('X'); ylabel('Y');
+            hold on;
+            hh1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
+            hh2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
+            theta = linspace(0,2*pi);
+            colors = lines(height(result));
+            inliers_colors = lines(height(inliers_final));
+
+            for i=1:height(inliers_final)
+                % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
+                % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
+                x = inliers_final(i,3)*cos(theta) + inliers_final(i,1);
+                y = inliers_final(i,3)*sin(theta) + inliers_final(i,2);
+                plot(x,y,'Color', 'r');
+                x2 = inliers_target(i,3)*cos(theta) + inliers_target(i,1);
+                y2 = inliers_target(i,3)*sin(theta) + inliers_target(i,2);
+                plot(x2,y2,'Color', 'b');
+            end
+            legend([hh1, hh2], {'Target Landmarks', 'Source Landmarks'}, 'Location', 'southoutside');
+            hold off
+
+            figure(3*run-1);
+            set(gcf, 'Renderer', 'painters');
+            set(gcf, 'Renderer', 'opengl');
+            title('Histogram Matches');
+            xlabel('X'); ylabel('Y');
+            hold on;
+            hh1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
+            hh2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
+            for i=1:height(result)
+                x = result(i,3)*cos(theta) + result(i,1);
+                y = result(i,3)*sin(theta) + result(i,2);
+                % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
+                % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
+                plot(x,y,'Color', 'r');
+                x2 = result(i,6)*cos(theta) + result(i,4);
+                y2 = result(i,6)*sin(theta) + result(i,5);
+                plot(x2,y2,'Color', 'b');
+            end
+            legend([hh1, hh2], {'Target Landmarks', 'Source Landmarks'}, 'Location', 'southoutside');
+            hold off;
+
+            % figure(3*run+500);
+            % title('Best Cost vs Iterations');
             % xlabel('X'); ylabel('Y');
-            % hold on;
-            % theta = linspace(0,2*pi);
-            % colors = lines(height(result));
-            % inliers_colors = lines(height(inliers_final));
-            % 
-            % for i=1:height(inliers_final)
-            %     % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
-            %     % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
-            %     x = inliers_final(i,3)*cos(theta) + inliers_final(i,1);
-            %     y = inliers_final(i,3)*sin(theta) + inliers_final(i,2);
-            %     plot(x,y,'Color', 'r');
-            %     x2 = inliers_target(i,3)*cos(theta) + inliers_target(i,1);
-            %     y2 = inliers_target(i,3)*sin(theta) + inliers_target(i,2);
-            %     plot(x2,y2,'Color', 'b');
-            % end
-            % hold off
-            % 
-            % figure(3*run-1);
-            % title('Histogram Matches');
-            % xlabel('X'); ylabel('Y');
-            % hold on
-            % for i=1:height(result)
-            %     x = result(i,3)*cos(theta) + result(i,1);
-            %     y = result(i,3)*sin(theta) + result(i,2);
-            %     % x = result(i,3)*cos(theta) + cs_prime_final(i,1);
-            %     % y = result(i,3)*sin(theta) + cs_prime_final(i,2);
-            %     plot(x,y,'Color', 'r');
-            %     x2 = result(i,6)*cos(theta) + result(i,4);
-            %     y2 = result(i,6)*sin(theta) + result(i,5);
-            %     plot(x2,y2,'Color', 'b');
-            % end
+            % grid on;
+            % % hh1 = plot(nan, nan, 'b-', 'LineWidth', 2); % Blue solid line (A)
+            % % hh2 = plot(nan, nan, 'r-', 'LineWidth', 2); % Red dashed line (B)
+            % plot(1:height(cost_track), cost_track(:,2), 'Color', 'b','LineWidth', 1);
+            % % legend([hh1, hh2], {'Target Landmarks', 'Source Landmarks'}, 'Location', 'southoutside');
         end
     else
         disp("Not enough correspondences to resolve fine matching")

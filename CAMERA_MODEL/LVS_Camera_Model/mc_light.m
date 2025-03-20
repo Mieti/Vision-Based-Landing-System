@@ -13,7 +13,7 @@ r_CB = [0; 0; -0.60];
 q_CB = [0 0 0 1];
 w = 0.11;
 h = 0.11;
-f = 0.135;
+f = 0.135; 
 Errf=0.001;
 actualf=f*(1+Errf);
 
@@ -29,7 +29,7 @@ load EST_PosZ
 n_points = 5;
 landmarks_number_lvs = 100;
 landmarks_initial = zeros(1, landmarks_number_lvs*10+1);
-nrun = 100;
+nrun = 30;
 
 % mc_results = struct('ACT_Quaternion', [], ...
 %                     'EST_Quaternion', [], ...
@@ -133,7 +133,7 @@ for run=1:nrun
     MURotBiasY=0; 
     SIGMARotBiasY=1./3; 
     MURotBiasZ=0; 
-    SIGMARotBiasZ=1./3; 
+    SIGMARotBiasZ=5./3; 
 
     InitialErrorX=(MURotBiasX+SIGMARotBiasX*INIT_randn_values(2,run))/180*pi; 
     InitialErrorY=(MURotBiasY+SIGMARotBiasY*INIT_randn_values(3,run))/180*pi;
@@ -190,8 +190,7 @@ for run=1:nrun
     EST_Quaternion.Data(101,1:4) = q0_known(1,:);
     
     Rand_z = 4100+130*(INIT_rand_values(5,run)-0.5);
-    ACT_PosZ.signals.values(1:1) = Rand_z;
-
+    ACT_PosZ.signals.values(:) = ACT_PosZ.signals.values(:) + (Rand_z - ACT_PosZ.signals.values(1));
     % Rand_x = 0;
     % Rand_y = 0;
     Rand_x = -3000 + 6000*INIT_rand_values(6, run);
@@ -216,30 +215,30 @@ for run=1:nrun
 
     num_landmarks_cat=length(Cat.clandmarkX);
 
-    % figure(3*run-2); %Simulation Init
+    figure(3*run-2); %Simulation Init
 
-    % for k=1:num_landmarks_cat
-    %     CatX(k)=Cat.clandmarkX(k);
-    %     CatY(k)=Cat.clandmarkY(k);
-    %     Catr(k)=Cat.rlandmark(k);
-    %     theta = linspace(0,2*pi);
-    %     Catx = Catr(k)*cos(theta) + CatX(k);
-    %     Caty = Catr(k)*sin(theta) + CatY(k);
-    %     % if (k == 100)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 200)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 300)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 400)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 500)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % else
-    %         plot(Catx,Caty,'b')
-    %     % end
-    %     hold on;
-    % end
+    for k=1:num_landmarks_cat
+        CatX(k)=Cat.clandmarkX(k);
+        CatY(k)=Cat.clandmarkY(k);
+        Catr(k)=Cat.rlandmark(k);
+        theta = linspace(0,2*pi);
+        Catx = Catr(k)*cos(theta) + CatX(k);
+        Caty = Catr(k)*sin(theta) + CatY(k);
+        % if (k == 100)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 200)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 300)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 400)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 500)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % else
+            plot(Catx,Caty,'b')
+        % end
+        hold on;
+    end
 
     num_landmarks_found=0;
     for j=1:100
@@ -255,10 +254,10 @@ for run=1:nrun
         CamY(i)=landmarks_ground(2,i*2);
         Camr(i)=landmarks_ground(2,199+i*3);
         theta = linspace(0,2*pi);
-        % Camx = Camr(i)*cos(theta) + CamX(i);
-        % Camy = Camr(i)*sin(theta) + CamY(i); 
-        % plot(Camx,Camy,'r')
-        % hold on;
+        Camx = Camr(i)*cos(theta) + CamX(i);
+        Camy = Camr(i)*sin(theta) + CamY(i); 
+        plot(Camx,Camy,'r')
+        hold on;
     end
     % create catalogue for matching algorithm
     cameraShot.PosX = CamX';
@@ -268,13 +267,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    tic 
-        [distance, direction, inliers_tot, PosX, PosY, pos_diff, reliability] = ETSM_matching(run, Rand_x, Rand_y);
-    time = toc;
-
-    % tic
-    %     [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
+    % tic 
+    %     [distance, direction, inliers_tot, PosX, PosY, pos_diff, reliability] = ETSM_matching(run, Rand_x, Rand_y);
     % time = toc;
+
+    tic
+        [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
+    time = toc;
 
     % mc_results(run).ACT_Quaternion = q0;
     % mc_results(run).EST_Quaternion = q0_known;

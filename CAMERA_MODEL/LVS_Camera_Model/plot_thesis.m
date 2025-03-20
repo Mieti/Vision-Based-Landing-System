@@ -4,25 +4,27 @@ clc
 
 % Generate random data (1000 samples)
 data = load('ETSM_DEFINITIVE_ADJ.mat').mc_results_def;  % Normally distributed data
-data = data(data.EST_dist < 9000000, :);
-data = data.EST_dist;
 
-box = boxplot(data, 'Notch', 'on', 'Colors', 'b', 'Symbol', 'o');
+% Define x-axis range
+x = linspace(-10, 20, 500);
 
-% Fill the box with blue color
-h = findobj(gca, 'Tag', 'Box');
-for i = 1:length(h)
-    patch(get(h(i), 'XData'), get(h(i), 'YData'), 'b', 'FaceAlpha', 0.5); % Adjust transparency if needed
-end
+% Define two normal distributions (mean and standard deviation)
+mu1 = 0;  sigma1 = 2;
+mu2 = 8;  sigma2 = 3;
 
-% Change the median line color to red
-medianLine = findobj(gca, 'Tag', 'Median');
-set(medianLine, 'Color', 'r', 'LineWidth', 1);
+% Compute the probability density functions (PDFs)
+pdf1 = normpdf(x, mu1, sigma1);
+pdf2 = normpdf(x, mu2, sigma2);
 
-% Add labels
+% Plot both distributions
+figure;
+plot(x, pdf1,'LineWidth', 1.5); hold on;  % Blue solid line for first
+plot(x, pdf2, 'r--', 'LineWidth', 1.5);          % Red dashed line for second
+hold off;
 
-ylabel('Distance Error [m]')
-title('Box Plot of Distance Error (Inliers + Outliers)');
-
-% Improve grid visibility
-grid on
+% Add labels, title, and legend
+xlabel('Value');
+ylabel('Probability Density');
+title('Comparison of Two Normal Distributions');
+legend('Distribution 1 (Blue, \mu=0, \sigma=2)', 'Distribution 2 (Red, \mu=8, \sigma=3)', 'Location', 'northeast');
+grid on;
