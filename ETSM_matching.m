@@ -1,4 +1,4 @@
-function [distance, direction, inliers, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s] = ETSM_matching(run, Rand_x, Rand_y)
+function [distance, direction, initial_inliers, inliers, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s, inliers_ratio, spread, delta_origin] = ETSM_matching(run, Rand_x, Rand_y)
 
     % read full crater list map and triangles map
     craters = readtable("CraterMapRadius.csv");
@@ -21,6 +21,10 @@ function [distance, direction, inliers, PosX, PosY, pos_diff, reliability, origi
     rel_threshold = 100;
     origin_3s = 0;
     origin_2s = 0;
+    initial_inliers = 0;
+    inliers_ratio = 0;
+    spread = 0;
+    delta_origin = 0;
     distance = 9e6; direction = 9e6; inliers = 0; pos_diff = 9e6; PosX = 9e6; PosY = 9e6;
     % 2 nested loops to compare 2 triangles
     for i=1:height(camera_triangles)
@@ -159,7 +163,8 @@ function [distance, direction, inliers, PosX, PosY, pos_diff, reliability, origi
         result_final(:,12) = cs(:,2);
         distance = mean(ct-cs);
         direction = rad2deg(-phi);
-        inliers = res_counter;
+        inliers = height(result_final);
+        initial_inliers = height(result_final);
         origin = (R_mat*[0 0]'+distance')';
         origin_diff = vecnorm([Rand_x Rand_y]-(R_mat*[0 0]'+distance')');
         PosX = origin(1);
@@ -206,6 +211,10 @@ function [distance, direction, inliers, PosX, PosY, pos_diff, reliability, origi
             pos_diff = origin_diff;
             origin_3s = (R_mat*[0 0]'+centroid_mean_filtered')';
             origin_2s =(R_mat*[0 0]'+centroid_mean_restricted')';
+            inliers_ratio = inliers/initial_inliers;
+            delta_origin = norm(origin_3s - origin_2s);
+            spread = abs(centroid_mean_filtered - centroid_mean_restricted);
+            rel = 0.5*inliers_ratio + 0.25*delta_origin + 0.25*spread;
             % plot(point(1), point(2), '-o', 'LineWidth', 1, 'Color', 'black')
         % end
         %fare media e comporre il vettore traslazione

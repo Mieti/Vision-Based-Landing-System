@@ -63,9 +63,9 @@ mc_results = struct('Rot_act_X', [], ...
                     %'Monitor', []);
                     % 'Precision', []);
 
-for run=99:nrun
+for run=1:nrun
     %% MC VARIABLES
-    if run == 99
+    if run == 1
         rand('state',5938437);INIT_rand_values=rand(7,nrun);
         randn('state',2845334);INIT_randn_values=randn(7,nrun);
     end
@@ -268,7 +268,7 @@ for run=99:nrun
     writetable(struct2table(cameraShot), outputPath);
 
     tic 
-        [distance, direction, inliers_tot, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s] = ETSM_matching(run, Rand_x, Rand_y);
+        [distance, direction, initial_inliers, inliers_tot, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s, inliers_ratio, spread, delta_origin] = ETSM_matching(run, Rand_x, Rand_y);
     time = toc;
 
     % tic
@@ -290,6 +290,7 @@ for run=99:nrun
     mc_results(run).Direction_err = abs(direction-rad2deg(RotNomZ0));
     % mc_results(run).Distance_err = norm(translation);
     % mc_results(run).Cost = total_cost;
+    mc_results(run).Initial_inliers = initial_inliers;
     mc_results(run).Inliers = inliers_tot;
     mc_results(run).Time = time;
     mc_results(run).EST_PosX = PosX;
@@ -298,6 +299,9 @@ for run=99:nrun
     mc_results(run).Reliability = reliability;
     mc_results(run).Origin3s = origin_3s;
     mc_results(run).Origin2s = origin_2s;
+    mc_results(run).Inliers_ratio = inliers_ratio;
+    mc_results(run).Spread = spread;
+    mc_results(run).Delta_origin = delta_origin;
     % mc_results(run).Monitor = monitor;
     % mc_results(run).Precision = precision;
 end
