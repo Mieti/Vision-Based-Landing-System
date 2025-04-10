@@ -215,30 +215,30 @@ for run=1:nrun
 
     num_landmarks_cat=length(Cat.clandmarkX);
 
-    % figure(3*run-2); %Simulation Init
+    figure(3*run-2); %Simulation Init
 
-    % for k=1:num_landmarks_cat
-    %     CatX(k)=Cat.clandmarkX(k);
-    %     CatY(k)=Cat.clandmarkY(k);
-    %     Catr(k)=Cat.rlandmark(k);
-    %     theta = linspace(0,2*pi);
-    %     Catx = Catr(k)*cos(theta) + CatX(k);
-    %     Caty = Catr(k)*sin(theta) + CatY(k);
-    %     % if (k == 100)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 200)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 300)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 400)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % elseif (k == 500)
-    %     %     plot(Catx,Caty,'g', 'LineWidth', 3);
-    %     % else
-    %         plot(Catx,Caty,'b')
-    %     % end
-    %     hold on;
-    % end
+    for k=1:num_landmarks_cat
+        CatX(k)=Cat.clandmarkX(k);
+        CatY(k)=Cat.clandmarkY(k);
+        Catr(k)=Cat.rlandmark(k);
+        theta = linspace(0,2*pi);
+        Catx = Catr(k)*cos(theta) + CatX(k);
+        Caty = Catr(k)*sin(theta) + CatY(k);
+        % if (k == 100)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 200)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 300)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 400)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % elseif (k == 500)
+        %     plot(Catx,Caty,'g', 'LineWidth', 3);
+        % else
+            plot(Catx,Caty,'b')
+        % end
+        hold on;
+    end
 
     num_landmarks_found=0;
     for j=1:100
@@ -267,13 +267,13 @@ for run=1:nrun
     outputPath = fullfile(currentDir, '..', '..', 'CameraShotSim.csv');
     writetable(struct2table(cameraShot), outputPath);
 
-    tic 
-        [distance, direction, initial_inliers, inliers_tot, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s, inliers_ratio, spread, delta_origin] = ETSM_matching(run, Rand_x, Rand_y);
-    time = toc;
-
-    % tic
-    %     [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
+    % tic 
+    %     [distance, direction, initial_inliers, inliers_tot, PosX, PosY, pos_diff, reliability, origin_3s, origin_2s, inliers_ratio, spread, delta_origin] = ETSM_matching(run, Rand_x, Rand_y);
     % time = toc;
+
+    tic
+        [distance, direction, total_cost, inliers_tot, PosX, PosY, pos_diff, reliability] = RANSAC_matching(run, Rand_x, Rand_y);
+    time = toc;
 
     % mc_results(run).ACT_Quaternion = q0;
     % mc_results(run).EST_Quaternion = q0_known;
@@ -289,19 +289,19 @@ for run=1:nrun
     mc_results(run).Distance_err = distance;
     mc_results(run).Direction_err = abs(direction-rad2deg(RotNomZ0));
     % mc_results(run).Distance_err = norm(translation);
-    % mc_results(run).Cost = total_cost;
+    mc_results(run).Cost = total_cost;
     mc_results(run).Initial_inliers = initial_inliers;
     mc_results(run).Inliers = inliers_tot;
     mc_results(run).Time = time;
     mc_results(run).EST_PosX = PosX;
     mc_results(run).EST_PosY = PosY;
     mc_results(run).EST_dist = pos_diff;
-    mc_results(run).Reliability = reliability;
-    mc_results(run).Origin3s = origin_3s;
-    mc_results(run).Origin2s = origin_2s;
-    mc_results(run).Inliers_ratio = inliers_ratio;
-    mc_results(run).Spread = spread;
-    mc_results(run).Delta_origin = delta_origin;
+    % mc_results(run).Reliability = reliability;
+    % mc_results(run).Origin3s = origin_3s;
+    % mc_results(run).Origin2s = origin_2s;
+    % mc_results(run).Inliers_ratio = inliers_ratio;
+    % mc_results(run).Spread = spread;
+    % mc_results(run).Delta_origin = delta_origin;
     % mc_results(run).Monitor = monitor;
     % mc_results(run).Precision = precision;
 end
